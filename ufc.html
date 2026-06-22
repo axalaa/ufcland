@@ -395,6 +395,17 @@ section.compare{ padding:10px 0 70px; }
 .cmp-val:first-child{ text-align:right; }
 .cmp-val:last-child{ text-align:left; }
 .cmp-val.win{ color:var(--gold); }
+.cmp-analysis{ border-top:1px solid var(--line); padding:20px 22px 22px; }
+.cmp-analysis-title{ font-size:13px; font-weight:700; color:var(--gold-soft); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; }
+.cmp-insight{ display:flex; gap:11px; align-items:flex-start; padding:8px 0; color:var(--muted); line-height:1.55; font-size:14px; }
+.cmp-insight b{ color:var(--text); }
+.cmp-ic{ font-size:18px; flex:none; }
+.cmp-note{ padding:20px 22px; color:var(--muted); font-size:14px; border-top:1px solid var(--line); text-align:center; line-height:1.55; }
+.cmp-h2h{ background:rgba(233,185,73,.08); border:1px solid var(--line); border-left:3px solid var(--gold); border-radius:8px; padding:13px 15px; margin-bottom:14px; }
+.cmp-h2h-head{ font-weight:700; color:var(--text); margin-bottom:6px; }
+.cmp-h2h-row{ color:var(--text); padding:2px 0; }
+.cmp-h2h-note{ margin-top:9px; color:var(--gold-soft); font-size:13px; line-height:1.5; }
+.cmp-egg b{ color:var(--gold); }
 .cmp-lbl{ color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.5px; padding:0 16px; white-space:nowrap; }
 @media(max-width:600px){
   .cmp-lbl{ font-size:10px; padding:0 8px; }
@@ -488,7 +499,7 @@ section.compare{ padding:10px 0 70px; }
   <div class="wrap">
     <div class="section-head">
       <h2>შედარება</h2>
-      <span class="hint">აირჩიე ორი მებრძოლი — ვინ რაში სჯობს</span>
+      <span class="hint">აირჩიე ორი მებრძოლი შესადარებლად</span>
     </div>
     <div class="cmp-controls">
       <select id="cmpA" class="cmp-select"></select>
@@ -1516,7 +1527,7 @@ function initCompare(){
   $('#cmpA').innerHTML = opts;
   $('#cmpB').innerHTML = opts;
   $('#cmpA').value = 'topuria';
-  $('#cmpB').value = 'makhachev';
+  $('#cmpB').value = 'oliveira';
   $('#cmpA').addEventListener('change', renderCompare);
   $('#cmpB').addEventListener('change', renderCompare);
   renderCompare();
@@ -1553,7 +1564,52 @@ function renderCompare(){
       ${row('მკლავი', a.reach, b.reach, num(a.reach), num(b.reach))}
       ${row('ასაკი', a.age, b.age, null, null)}
       ${row('წონა', classOf(a.wclass).kg, classOf(b.wclass).kg, null, null)}
-    </div>`;
+    </div>
+    ${matchupAnalysis(a, b)}`;
+}
+
+/* анализ боя: опора на реальные бои (очная встреча), а не на сумму цифр */
+function matchupAnalysis(a, b){
+  // очные встречи — из истории боёв обоих (дедуп по дате)
+  const seen = {}, h2h = [];
+  const collect = (self, foe) => self.fights.forEach(ft => {
+    if (ft.opp === foe.name && !seen[ft.date]){
+      seen[ft.date] = 1;
+      h2h.push({ date: ft.date, method: ft.method, winner: ft.result === 'win' ? self.name : (ft.result === 'loss' ? foe.name : null) });
+    }
+  });
+  collect(a, b);
+  collect(b, a);
+
+  // фактический профиль финишей — просто цифры, без ярлыка «он борец/ударник»
+  const finishLine = f => `${f.name} — ${f.ko} ნოკ. · ${f.sub} სუბ. · ${f.dec} გადაწყვ.`;
+  let rows = '';
+
+  if (h2h.length){
+    const items = h2h.map(h => {
+      const r = h.winner ? `<b>${h.winner}</b> მოიგო — ${h.method}` : `უ-კონტესტი — ${h.method}`;
+      return `<div class="cmp-h2h-row">📅 ${h.date}: ${r}</div>`;
+    }).join('');
+    rows += `<div class="cmp-h2h"><div class="cmp-h2h-head">🥇 უკვე შეხვდნენ${h2h.length > 1 ? ` (${h2h.length}-ჯერ)` : ''}:</div>${items}<div class="cmp-h2h-note">ეს არის ნამდვილი პასუხი: ქაღალდის სტატისტიკის მიუხედავად, რეალურ ბრძოლაში სტილმა და კლასმა გადაწყვიტა.</div></div>`;
+  }
+
+  rows += `<div class="cmp-insight"><span class="cmp-ic">🥊</span><div><b>ფინიშების პროფილი:</b><br>${finishLine(a)}<br>${finishLine(b)}</div></div>`;
+
+  if (!h2h.length){
+    rows += a.wclass !== b.wclass
+      ? `<div class="cmp-insight"><span class="cmp-ic">ⓘ</span><div>ეს ორი ერთმანეთს არ შეხვედრია და სხვადასხვა წონით კატეგორიაშია — პირდაპირი ანალიზი ნაკლებად აზრიანია.</div></div>`
+      : `<div class="cmp-insight"><span class="cmp-ic">⚖️</span><div>პირდაპირი ბრძოლა არ ჰქონიათ. ციფრები მხოლოდ სურათის ნაწილია — რეალურ ოქტაგონში სტილის რეალიზაცია წყვეტს, არა სტატისტიკის ჯამი.</div></div>`;
+  }
+
+  // пасхалка: Топурия против НЕ-грузина — фанатская приписка 😎 (со своими не дразнимся)
+  if (a.id === 'topuria' || b.id === 'topuria'){
+    const other = a.id === 'topuria' ? b : a;
+    if (!other.flag.includes('🇬🇪')){
+      rows += `<div class="cmp-insight cmp-egg"><span class="cmp-ic">🇬🇪</span><div><b>...მარა თოფურა დალეწავს 😎</b></div></div>`;
+    }
+  }
+
+  return `<div class="cmp-analysis"><div class="cmp-analysis-title">ბრძოლის ანალიზი</div>${rows}</div>`;
 }
 
 /* первый запуск */
