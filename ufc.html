@@ -406,6 +406,42 @@ section.compare{ padding:10px 0 70px; }
 .cmp-h2h-row{ color:var(--text); padding:2px 0; }
 .cmp-h2h-note{ margin-top:9px; color:var(--gold-soft); font-size:13px; line-height:1.5; }
 .cmp-egg b{ color:var(--gold); }
+
+/* ---- боец дня ---- */
+section.fotd{ padding:28px 0 4px; }
+.fotd-card{
+  display:flex; gap:20px; align-items:center; cursor:pointer;
+  background:linear-gradient(135deg, rgba(232,59,59,.12), rgba(233,185,73,.06)), var(--surface);
+  border:1px solid var(--line); border-radius:var(--radius); padding:18px 22px;
+  transition:transform .2s, border-color .2s, box-shadow .2s;
+}
+.fotd-card:hover{ transform:translateY(-3px); border-color:var(--gold); box-shadow:var(--shadow); }
+.fotd-photo{
+  width:104px; height:104px; flex:none; border-radius:14px; overflow:hidden; position:relative;
+  display:flex; align-items:center; justify-content:center; font-size:38px; font-weight:900;
+  background:linear-gradient(135deg,var(--red-deep),#2a1812); color:rgba(246,237,226,.85);
+}
+.fotd-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .4s ease; }
+.fotd-info{ min-width:0; }
+.fotd-label{ color:var(--gold); font-weight:700; font-size:12px; letter-spacing:1px; text-transform:uppercase; }
+.fotd-name{ font-size:22px; font-weight:900; margin:3px 0; }
+.fotd-meta{ color:var(--muted); font-size:13px; margin-bottom:8px; }
+.fotd-bio{ color:var(--muted); font-size:14px; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.fotd-cta{ display:inline-block; margin-top:8px; color:var(--gold-soft); font-weight:700; font-size:13px; }
+@media(max-width:560px){
+  .fotd-card{ flex-direction:column; text-align:center; }
+  .fotd-photo{ width:90px; height:90px; }
+  .fotd-bio{ -webkit-line-clamp:3; }
+}
+
+/* ---- сортировка карточек ---- */
+.sort-row{ display:flex; align-items:center; justify-content:flex-end; gap:10px; margin:-10px 0 22px; }
+.sort-row label{ color:var(--muted); font-size:13px; }
+.sort-select{
+  background:var(--surface); border:1px solid var(--line); color:var(--text);
+  font-family:inherit; font-size:14px; padding:9px 13px; border-radius:10px; cursor:pointer;
+}
+.sort-select:focus{ outline:none; border-color:var(--gold); }
 .cmp-lbl{ color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.5px; padding:0 16px; white-space:nowrap; }
 @media(max-width:600px){
   .cmp-lbl{ font-size:10px; padding:0 8px; }
@@ -474,6 +510,13 @@ section.compare{ padding:10px 0 70px; }
   <div class="wrap" id="statbar"><!-- цифры подставит JS --></div>
 </div>
 
+<!-- ======================= БОЕЦ ДНЯ ======================= -->
+<section class="fotd">
+  <div class="wrap">
+    <div class="fotd-card" id="fotdCard"><!-- бойца дня подставит JS --></div>
+  </div>
+</section>
+
 <!-- ======================= БОЙЦЫ ======================= -->
 <section class="fighters" id="fighters">
   <div class="wrap">
@@ -484,6 +527,16 @@ section.compare{ padding:10px 0 70px; }
 
     <!-- меню весовых категорий -->
     <div class="cats" id="cats"><!-- кнопки подставит JS --></div>
+
+    <!-- сортировка -->
+    <div class="sort-row">
+      <select id="sort" class="sort-select">
+        <option value="default">Default</option>
+        <option value="wins">გამარჯვებების მიხედვით</option>
+        <option value="ko">ნოკაუტების მიხედვით</option>
+        <option value="name">სახელით (A–Z)</option>
+      </select>
+    </div>
 
     <!-- сетка карточек -->
     <div class="grid" id="grid"><!-- карточки подставит JS --></div>
@@ -635,6 +688,14 @@ const FIGHTERS = [
   },
   {
     id:'mcgregor', name:'Conor McGregor', nick:'The Notorious', flag:'🇮🇪',
+    details:{
+      born:'14 ივლისი 1988',
+      birthplace:'დუბლინი, ირლანდია (კრამლინი)',
+      team:'SBG Ireland (ჯონ კავანა)',
+      style:'კრივი · MMA',
+      nickFrom:'„The Notorious" — ცნობილია სიტყვიერი ომითა და ფსიქოლოგიური ზეწოლით (მუჰამედ ალის სტილში).',
+      text:'დაიბადა 1988 წლის 14 ივლისს დუბლინში. 12 წლისა კრივი დაიწყო კრამლინის კლუბში — თავდაცვისა და თავდაჯერების მისაღებად. სანტექნიკოსად გადამზადების შემდეგ მთლიანად MMA-ს მიჰყვა; 2008 წლიდან ვარჯიშობს SBG Ireland-ში, ჯონ კავანასთან.\n\nგახდა UFC-ის ისტორიაში პირველი მებრძოლი, ვინც ერთდროულად ფლობდა ტიტულს ორ წონაში — ფედერვეიტი (ალდოს 13-წამიანი ნოკაუტი, 2015) და მსუბუქი წონა (2016).\n\nბიზნესში — 2018 წელს გამოუშვა ვისკი „Proper No. Twelve" და წილი 2021-ში დიდ ფასად გაყიდა. დე დევლინთან ერთად ჰყავს ოთხი შვილი; დაქორწინდნენ 2025 წელს.',
+    },
     wclass:'lightweight', champion:false, country:'ირლანდია',
     rec:{w:22,l:6,d:0}, ko:19, sub:1, dec:2, height:'175 სმ', reach:'188 სმ', age:37,
     bio:'UFC-ის ისტორიის ერთ-ერთი ყველაზე ცნობილი ვარსკვლავი, ერთ დროს ორ კატეგორიაში ერთდროულად ჩემპიონი. 2021 წლის შემდეგ არ უბრძოლია; დაბრუნება იგეგმება 2026 წლის ივლისში მაქს ჰოლოუესთან.',
@@ -647,6 +708,14 @@ const FIGHTERS = [
   },
   {
     id:'edwards', name:'Leon Edwards', nick:'Rocky', flag:'🇬🇧',
+    details:{
+      born:'25 აგვისტო 1991',
+      birthplace:'კინგსტონი, იამაიკა',
+      team:'Team Renegade, ბირმინგემი',
+      style:'მუაი-თაი/კრივი · ჯიუ-ჯიცუ (შავი ქამარი) · MMA',
+      nickFrom:'„Rocky" — სასკოლო მეგობრებისგან მიღებული მეტსახელი.',
+      text:'დაიბადა 1991 წლის 25 აგვისტოს იამაიკაში, კინგსტონში. 9 წლისა ოჯახი ინგლისში, ბირმინგემში გადავიდა; 13 წლისა მამა ლონდონში მოკლეს. მოზარდობისას ქუჩის ცხოვრებაში იყო ჩართული, სანამ 17 წლისას დედამ MMA-კლუბში არ მიიყვანა.\n\nვარჯიშობს Team Renegade-ში (ბირმინგემი); ჯიუ-ჯიცუს შავი ქამარი. ძმა, ფაბიან ედვარდსი, ასევე პროფესიონალი მებრძოლია.\n\n2022 წლის 20 აგვისტოს მოიგო ველტერვეიტის ტიტული — ბოლო წამებში, მე-5 რაუნდში, თავში დარტყმით ნოკაუტით დაამარცხა უსმანი. ეს ერთ-ერთ ყველაზე ლეგენდარულ კამბექად შევიდა ისტორიაში.',
+    },
     wclass:'welterweight', champion:false, country:'დიდი ბრიტანეთი',
     rec:{w:22,l:6,d:0}, ko:7, sub:3, dec:12, height:'188 სმ', reach:'188 სმ', age:34,
     bio:'ყოფილი ველტერვეიტ ჩემპიონი, ცნობილი ლეგენდარული თავში დარტყმით უსმანის წინააღმდეგ ბოლო წამებში. ბოლო პერიოდში ზედიზედ სამ ბრძოლაში დამარცხდა და ტიტული დაკარგა.',
@@ -716,6 +785,14 @@ const FIGHTERS = [
   },
   {
     id:'tsarukyan', name:'Arman Tsarukyan', nick:'Akhalkalakets', flag:'🇦🇲',
+    details:{
+      born:'11 ოქტომბერი 1996',
+      birthplace:'ახალქალაქი, საქართველო (სომხური ოჯახი)',
+      team:'მზადება ხაბაროვსკში (რუსეთი)',
+      style:'თავისუფალი ჭიდაობა (სპორტის ოსტატი) · MMA',
+      nickFrom:'„ახალქალაქელი" — დაბადების ქალაქის (ახალქალაქი) მიხედვით.',
+      text:'დაიბადა 1996 წლის 11 ოქტომბერს ახალქალაქში, სომხურ ოჯახში. სამი წლისა ოჯახი რუსეთში, ხაბაროვსკში გადავიდა; არის სომეხი მართლმადიდებელი და ხაზს უსვამს თავის სომხურ ფესვებს.\n\nახალგაზრდობაში თავისუფალ ჭიდაობას მისდევდა (სპორტის ოსტატი) და თამაშობდა ახალგაზრდულ ჰოკეიში — ოცნებობდა NHL-ზე, მაგრამ რუსულ ჰოკეიში აღქმულმა კორუფციამ გადააფიქრებინა.\n\nMMA-ში პროფესიონალი 2015 წელს გახდა (სამოყვარულოდ 13-1), 2019-ში კი UFC-ში დებიუტირდა პირდაპირ მახაჩევთან. დაოჯახებულია (მილენა) და 2020 წლიდან მამაა.',
+    },
     wclass:'lightweight', champion:false, country:'სომხეთი (დაბ. ახალქალაქი)',
     rec:{w:23,l:3,d:0}, ko:9, sub:6, dec:8, height:'170 სმ', reach:'184 სმ', age:29,
     bio:'მსუბუქი წონის ერთ-ერთი საუკეთესო კონტენდერი, ცნობილი ძლიერი ჭიდაობითა და სიჩქარით. დაიბადა ქართულ ქალაქ ახალქალაქში — აქედანაა მისი მეტსახელი „ახალქალაქელი“.',
@@ -727,6 +804,14 @@ const FIGHTERS = [
   },
   {
     id:'oliveira', name:'Charles Oliveira', nick:'do Bronx', flag:'🇧🇷',
+    details:{
+      born:'17 ოქტომბერი 1989',
+      birthplace:'გუარუჟა, სან-პაულუ, ბრაზილია (ფაველა)',
+      team:'Chute Boxe Diego Lima, სან-პაულუ',
+      style:'ჯიუ-ჯიცუ (მე-4 დანის შავი ქამარი) · MMA',
+      nickFrom:'„do Bronx" — ნიშნავს „ბრონქსიდან"; იმ ფაველის, ღარიბი უბნის სიმბოლო, საიდანაც არის.',
+      text:'დაიბადა 1989 წლის 17 ოქტომბერს ბრაზილიის ქალაქ გუარუჟას ფაველაში. 7 წლისას გულის შუილი და რევმატიზმი დაუდგინდა, მაგრამ სპორტით დაძლია. 12 წლისა მეზობელმა ჯიუ-ჯიცუში მიიყვანა — ვარჯიში ღარიბი ბავშვებისთვის უფასო იყო, ოჯახი კი ქუჩაში სანოვაგის გაყიდვით ეხმარებოდა.\n\nUFC-ის ისტორიის რეკორდსმენია სუბმიშენებითა და დასრულებების რაოდენობით; ჯიუ-ჯიცუს მე-4 დანის შავი ქამარი. ყოფილი მსუბუქი წონის ჩემპიონი.\n\nღვთისმოსავი ქრისტიანია; 2012 წელს დააარსა ფონდი ღარიბი ბავშვებისთვის (უფასო ჯიუ-ჯიცუ და განათლება). ჰყავს ორი შვილი.',
+    },
     wclass:'lightweight', champion:false, country:'ბრაზილია',
     rec:{w:37,l:11,d:0}, ko:10, sub:22, dec:5, height:'178 სმ', reach:'188 სმ', age:36,
     bio:'ყოფილი მსუბუქი წონის ჩემპიონი და UFC-ის ისტორიის რეკორდსმენი სუბმიშენების რაოდენობით. ცნობილი შეუპოვრობითა და გასაგუდი ხერხების ოსტატობით.',
@@ -738,6 +823,14 @@ const FIGHTERS = [
   },
   {
     id:'pimblett', name:'Paddy Pimblett', nick:'The Baddy', flag:'🇬🇧',
+    details:{
+      born:'3 იანვარი 1995',
+      birthplace:'ლივერპული, ინგლისი (ჰიუტონი)',
+      team:'Next Generation MMA, ლივერპული',
+      style:'ჯიუ-ჯიცუ · MMA',
+      nickFrom:'„The Baddy" — ლივერპულური მეტსახელი, რომელიც მის თამამ, ეპატაჟურ იმიჯს უხდება.',
+      text:'დაიბადა 1995 წლის 3 იანვარს ლივერპულში. 15 წლისამ MMA დაიწყო, მას შემდეგ, რაც UFC 103-ზე ფრანკლინ-ბელფორის ბრძოლამ შთააგონა; დღემდე ვარჯიშობს Next Generation MMA-ში.\n\nპროფესიონალი 2012 წელს გახდა; იყო Cage Warriors-ის ფედერვეიტ ჩემპიონი, 2021-ში კი UFC-ში გადავიდა. ცნობილია ქარიზმით, წონის მკვეთრი რყევებითა და გულშემატკივართა სიყვარულით.\n\n2022 წელს დააარსა ფონდი მამაკაცთა ფსიქიკური ჯანმრთელობისა და ბავშვთა შიმშილის წინააღმდეგ. ლივერპულის გულშემატკივარია; დაოჯახებულია.',
+    },
     wclass:'lightweight', champion:false, country:'დიდი ბრიტანეთი',
     rec:{w:23,l:4,d:0}, ko:7, sub:10, dec:6, height:'178 სმ', reach:'185 სმ', age:31,
     bio:'პოპულარული ინგლისელი მებრძოლი, ცნობილი ქარიზმითა და გასაგუდი ხერხებით. 2026 წლის იანვარში დროებითი ტიტულისთვის გეთჯის დაუთმო.',
@@ -749,6 +842,14 @@ const FIGHTERS = [
   },
   {
     id:'hooker', name:'Dan Hooker', nick:'The Hangman', flag:'🇳🇿',
+    details:{
+      born:'13 თებერვალი 1990',
+      birthplace:'ოკლენდი, ახალი ზელანდია (მაორი ფესვები)',
+      team:'City Kickboxing, ოკლენდი (იუჯინ ბერმანი)',
+      style:'მუაი-თაი/კიკბოქსინგი · ჯიუ-ჯიცუ (შავი ქამარი) · MMA',
+      nickFrom:'„The Hangman" — მისი მკვეთრი, დამამთავრებელი სტილის სიმბოლო.',
+      text:'დაიბადა 1990 წლის 13 თებერვალს ოკლენდში; ნაწილობრივ მაორი წარმოშობისაა. სკოლის შემდეგ მეგობარმა MMA-ში მიიყვანა; პარალელურად პროფესიონალურ კიკბოქსინგსაც მისდევდა.\n\nვარჯიშობს ცნობილ City Kickboxing-ში (იქვე, სადაც ადესანია და ვოლკანოვსკი), იუჯინ ბერმანთან. MMA-ში 2009 წელს დებიუტირდა, UFC-ში — 2014-ში, 2017-ში კი ფედერიდან მსუბუქ წონაში გადავიდა.\n\nცნობილია მძაფრი, „ომის" სტილით. ჰყავს ქალიშვილი ზოი.',
+    },
     wclass:'lightweight', champion:false, country:'ახალი ზელანდია',
     rec:{w:24,l:14,d:0}, ko:11, sub:7, dec:6, height:'183 სმ', reach:'192 სმ', age:36,
     bio:'გამოცდილი ახალზელანდიელი მებრძოლი, ცნობილი მძაფრი სტილითა და დიდი გულით — მსუბუქი წონის ნამდვილი ვეტერანი.',
@@ -762,6 +863,14 @@ const FIGHTERS = [
   // ========== ДОБАВЛЕНО (UFC 6, 4+ звезды): ПОЛУСРЕДНИЙ ВЕС / WELTERWEIGHT ==========
   {
     id:'belal', name:'Belal Muhammad', nick:'Remember the Name', flag:'🇺🇸',
+    details:{
+      born:'9 ივლისი 1988',
+      birthplace:'ჩიკაგო, აშშ (პალესტინელი მშობლები)',
+      team:'მზადება ჩიკაგო / აშშ',
+      style:'ჭიდაობა · MMA',
+      nickFrom:'„Remember the Name" („დაიმახსოვრე სახელი") — მისი დაჟინებული, თანდათანობითი აღმასვლის სიმბოლო.',
+      text:'დაიბადა 1988 წლის 9 ივლისს ჩიკაგოში, პალესტინელ მშობლებში. სკოლაში ჭიდაობდა, შემდეგ კი ილინოისის უნივერსიტეტი დაამთავრა — სწავლობდა იურისტობას.\n\nპროფესიონალი 2012 წელს გახდა, UFC-ში კი 2016-ში მოხვდა უმარცხო 9-0 ჩანაწერით. ცნობილია დაუღალავი ტემპითა და წნეხით.\n\nმუსლიმია და აშკარად უჭერს მხარს პალესტინას; 2020 წელს მამისა და ბიძაშვილების ბიზნესი ჩიკაგოში არეულობისას გაანადგურეს. 2024 წელს გახდა ველტერვეიტის ჩემპიონი.',
+    },
     wclass:'welterweight', champion:false, country:'აშშ (პალესტინური წარმოშობის)',
     rec:{w:24,l:6,d:0}, ko:5, sub:1, dec:18, height:'178 სმ', reach:'183 სმ', age:37,
     bio:'ყოფილი ველტერვეიტ ჩემპიონი, ცნობილი დაუღალავი ტემპითა და წნეხით. ტიტული 2024 წელს მოიგო, 2025-ში დელა მადალენას დაუთმო, ბოლო პერიოდში კი მძიმე სერია აქვს.',
@@ -773,6 +882,14 @@ const FIGHTERS = [
   },
   {
     id:'shavkat', name:'Shavkat Rakhmonov', nick:'Nomad', flag:'🇰🇿',
+    details:{
+      born:'23 ოქტომბერი 1994',
+      birthplace:'შურჩი, უზბეკეთი (ყაზახური ოჯახი)',
+      team:'Kill Cliff FC',
+      style:'საბრძოლო სამბო (სპორტის ოსტატი) · MMA',
+      nickFrom:'„Nomad" („მომთაბარე") — რეგიონულ ტურნირებზე მიიღო; ყაზახური მომთაბარული ფესვების სიმბოლო.',
+      text:'დაიბადა 1994 წლის 23 ოქტომბერს უზბეკეთში, ყაზახურ ოჯახში. საბრძოლო სამბოს მისდევდა (სპორტის ოსტატი) და 18 წლისა, 2013-ში, სამოყვარულო MMA-ში მსოფლიო ჩემპიონი გახდა.\n\nიბრძვის ყაზახეთის ქალაქ კოქშეთაუდან; 2021 წლიდან — Kill Cliff FC-ში. ცნობილია იმით, რომ თითქმის ყველა ბრძოლა ვადაზე ადრე ასრულებს.\n\nფლობს ველტერვეიტის ისტორიაში დასრულებების ყველაზე გრძელ სერიას; 2023 წელს პირველმა დაასრულა სტივენ ტომპსონი სუბმიშენით. უმცროსი და, სორა, ასევე მებრძოლია; უძლეველია.',
+    },
     wclass:'welterweight', champion:false, country:'ყაზახეთი',
     rec:{w:19,l:0,d:0}, ko:8, sub:10, dec:1, height:'185 სმ', reach:'196 სმ', age:31,
     bio:'უძლეველი ყაზახი მებრძოლი — თითქმის ყველა გამარჯვება ვადაზე ადრე მოიპოვა (ნოკაუტი ან სუბმიშენი). ველტერვეიტის ერთ-ერთი ყველაზე საშიში კონტენდერი.',
@@ -784,6 +901,14 @@ const FIGHTERS = [
   },
   {
     id:'jdm', name:'Jack Della Maddalena', nick:'JDM', flag:'🇦🇺',
+    details:{
+      born:'10 სექტემბერი 1996',
+      birthplace:'პერტი, ავსტრალია (იტალიური ფესვები)',
+      team:'Scrappy MMA, პერტი',
+      style:'კრივი · MMA',
+      nickFrom:'„JDM" — უბრალოდ მისი ინიციალები (Jack Della Maddalena).',
+      text:'დაიბადა 1996 წლის 10 სექტემბერს ავსტრალიის პერტში; აქვს იტალიური (სარდინიული) ფესვები. 14 წლისა კრივი დაიწყო უფროსი ძმის გავლენით — თავიდან რაგბისთვის ფიზიკურ ფორმაში, შემდეგ კი მთლიანად MMA-ში გადავიდა.\n\nვარჯიშობს Scrappy MMA-ში (პერტი); UFC-ში 2021 წელს მოხვდა Dana White-ის Contender Series-ის გავლით.\n\n2025 წლის მაისში გახდა ველტერვეიტის ჩემპიონი (ბელალთან გამარჯვებით), თუმცა იმავე წლის ნოემბერში ტიტული მახაჩევს დაუთმო. ცნობილია მაღალი დონის ბოქსით.',
+    },
     wclass:'welterweight', champion:false, country:'ავსტრალია',
     rec:{w:18,l:4,d:0}, ko:12, sub:2, dec:4, height:'180 სმ', reach:'185 სმ', age:29,
     bio:'ყოფილი ველტერვეიტ ჩემპიონი, ცნობილი მაღალი დონის ბოქსითა და ნოკაუტებით. ტიტული 2025 წელს მახაჩევს დაუთმო.',
@@ -795,6 +920,13 @@ const FIGHTERS = [
   },
   {
     id:'morales', name:'Michael Morales', nick:'—', flag:'🇪🇨',
+    details:{
+      born:'24 ივნისი 1999',
+      birthplace:'პასახე, ეკვადორი',
+      team:'Entram Gym, ტიხუანა (მექსიკა)',
+      style:'ჯუდო · ჭიდაობა · MMA',
+      text:'დაიბადა 1999 წლის 24 ივნისს ეკვადორში, ჯუდოისტების ოჯახში — დედა მესამე დანის შავი ქამრის მფლობელი და საერთაშორისო მსაჯია. 5 წლისა ჯუდო დაიწყო დედასთან, 10 წლისა ჭიდაობაზე გადავიდა, 14 წლისა კი — MMA-ზე.\n\n16 წლისა პროფესიონალი გახდა. 2021 წელს ტიხუანაში (მექსიკა) გადავიდა და Entram Gym-ში ვარჯიშობს; იმავე წელს მოიპოვა UFC-ის კონტრაქტი Dana White-ის Contender Series-ით.\n\nუძლეველია — ველტერვეიტის ერთ-ერთი ყველაზე პერსპექტიული ვარსკვლავი გრძელი მკლავებითა და ნოკაუტებით. 2025 წელს „წლის მებრძოლადაც" დაასახელეს.',
+    },
     wclass:'welterweight', champion:false, country:'ეკვადორი',
     rec:{w:19,l:0,d:0}, ko:14, sub:1, dec:4, height:'183 სმ', reach:'201 სმ', age:26,
     bio:'უძლეველი ეკვადორელი მებრძოლი — ველტერვეიტის ერთ-ერთი ყველაზე პერსპექტიული ვარსკვლავი. ცნობილი ნოკაუტებითა და გრძელი მკლავებით.',
@@ -806,6 +938,14 @@ const FIGHTERS = [
   },
   {
     id:'usman', name:'Kamaru Usman', nick:'The Nigerian Nightmare', flag:'🇳🇬',
+    details:{
+      born:'11 მაისი 1987',
+      birthplace:'აუჩი, ნიგერია',
+      team:'Kill Cliff FC / ONX (ტრევორ ვიტმანი)',
+      style:'NCAA ჭიდაობა · MMA',
+      nickFrom:'„The Nigerian Nightmare" — ნებართვა მისცა NFL-ის ვარსკვლავმა კრისტიან ოკოიემ, ვისაც ეკუთვნოდა ეს მეტსახელი.',
+      text:'დაიბადა 1987 წლის 11 მაისს ნიგერიის ქალაქ აუჩიში; მამა ნიგერიის არმიის მაიორი იყო, დედა — მასწავლებელი. 8 წლისა ოჯახი აშშ-ში, ტეხასში გადავიდა.\n\nნებრასკა-კირნის უნივერსიტეტში გახდა NCAA-ის II დივიზიონის ეროვნული ჩემპიონი ჭიდაობაში (2010). 2015 წელს მოიგო შოუ „The Ultimate Fighter" და UFC-ის კონტრაქტი აიღო.\n\n2019 წელს გახდა ველტერვეიტის ჩემპიონი და ხუთჯერ დაიცვა ტიტული — ერთ დროს P4P ლიდერი. 2022 წელს ედვარდსს დაუთმო. ცნობილია დომინანტური ჭიდაობითა და წნეხით.',
+    },
     wclass:'welterweight', champion:false, country:'ნიგერია / აშშ',
     rec:{w:21,l:4,d:0}, ko:9, sub:1, dec:11, height:'183 სმ', reach:'193 სმ', age:39,
     bio:'ყოფილი ველტერვეიტ ჩემპიონი ხუთი წარმატებული დაცვით, ერთ დროს P4P ლიდერი. ცნობილი დომინანტური ჭიდაობითა და წნეხით.',
@@ -1249,7 +1389,7 @@ const FIGHTERS = [
    state хранит, какая категория выбрана и что введено в поиск.
    Любое изменение state → перерисовываем сетку.
    ========================================================================= */
-const state = { wclass:'all', query:'', page:1 };
+const state = { wclass:'all', query:'', page:1, sort:'default' };
 const PER_PAGE = 12;   // сколько карточек бойцов на одной странице
 
 const $ = (sel) => document.querySelector(sel);
@@ -1355,8 +1495,12 @@ function renderGrid(){
     return byClass && byQuery;
   });
 
-  // в разделе «ყველა» порядок: сначала грузины, потом чемпионы, дальше остальные
-  if (state.wclass === 'all') {
+  // сортировка карточек (выбор пользователя перекрывает порядок по умолчанию)
+  if (state.sort === 'wins') list.sort((a, b) => b.rec.w - a.rec.w);
+  else if (state.sort === 'ko') list.sort((a, b) => b.ko - a.ko);
+  else if (state.sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name));
+  else if (state.wclass === 'all') {
+    // по умолчанию в «ყველა»: сначала грузины, потом чемпионы, потом остальные
     const prio = f => f.flag.includes('🇬🇪') ? 0 : (f.champion ? 1 : 2);
     list.sort((a, b) => prio(a) - prio(b));
   }
@@ -1612,8 +1756,32 @@ function matchupAnalysis(a, b){
   return `<div class="cmp-analysis"><div class="cmp-analysis-title">ბრძოლის ანალიზი</div>${rows}</div>`;
 }
 
+/* ---- боец дня (меняется раз в сутки, детерминированно по дате) ---- */
+function renderFotd(){
+  const seed = Math.floor(Date.now() / 86400000);
+  const f = FIGHTERS[seed % FIGHTERS.length];
+  $('#fotdCard').innerHTML = `
+    <div class="fotd-photo">${initials(f.name)}<img src="${photoSrc(f)}" alt="${f.name}" data-fb="${PHOTOS[f.id]||''}" onload="this.style.opacity=1" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.remove();}"></div>
+    <div class="fotd-info">
+      <span class="fotd-label">🔥 დღის მებრძოლი</span>
+      <div class="fotd-name">${f.name} ${f.flag}</div>
+      <div class="fotd-meta">${classOf(f.wclass).name} · ${recStr(f.rec)}${f.champion ? ' · ჩემპიონი' : ''}</div>
+      <p class="fotd-bio">${f.bio}</p>
+      <span class="fotd-cta">სრული პროფილი →</span>
+    </div>`;
+  $('#fotdCard').onclick = () => openFighter(f.id);
+}
+
+/* сортировка карточек */
+$('#sort').addEventListener('change', (e) => {
+  state.sort = e.target.value;
+  state.page = 1;            // новая сортировка — с первой страницы
+  renderGrid();
+});
+
 /* первый запуск */
 renderStatbar();
+renderFotd();
 renderCats();
 renderGrid();
 initCompare();
