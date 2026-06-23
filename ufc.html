@@ -54,8 +54,7 @@ a{ color:inherit; text-decoration:none; }
 /* ---------- ШАПКА ---------- */
 header{
   position:sticky; top:0; z-index:40;
-  background:rgba(20,15,12,.82);
-  backdrop-filter:blur(10px);
+  background:rgba(20,15,12,.95);
   border-bottom:1px solid var(--line);
 }
 .nav{ display:flex; align-items:center; justify-content:space-between; height:66px; }
@@ -84,10 +83,7 @@ header{
     radial-gradient(120% 120% at 80% 10%, rgba(232,59,59,.35), transparent 55%),
     radial-gradient(120% 120% at 10% 90%, rgba(233,185,73,.30), transparent 55%),
     linear-gradient(135deg,#2a1812,#140f0c);
-  /* медленное «дыхание» тёплого света — создаёт ощущение живого фона */
-  animation:breathe 9s ease-in-out infinite;
 }
-@keyframes breathe{ 0%,100%{ filter:brightness(1); } 50%{ filter:brightness(1.18); } }
 
 /* гигантская полупрозрачная надпись на фоне — «силуэт бренда» */
 /* два бойца по бокам героя (фоном): слева Мераб, справа Топурия.
@@ -228,7 +224,7 @@ section.fighters{ padding:48px 0 70px; }
 .modal{
   position:fixed; inset:0; z-index:60; display:none;
   align-items:flex-start; justify-content:center;
-  background:rgba(8,5,3,.7); backdrop-filter:blur(6px);
+  background:rgba(8,5,3,.82);
   padding:40px 16px; overflow-y:auto;
 }
 .modal.open{ display:flex; }
@@ -633,6 +629,7 @@ const FIGHTERS = [
       { opp:'Cory Sandhagen',      date:'04.10.2025', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი' },
       { opp:'Sean O\'Malley',          date:'07.06.2025', result:'win',  method:'სუბმიშენი, 3 რაუნდი',     role:'favorite', odds:'ფავორიტი (რევანში)' },
       { opp:'Umar Nurmagomedov',   date:'18.01.2025', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი', role:'even',     odds:'თანაბარი შანსები' },
+      { opp:'Sean O\'Malley',      date:'14.09.2024', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი', role:'underdog', odds:'აუტსაიდერი — მოიგო ტიტული' },
     ],
   },
   {
@@ -1203,6 +1200,7 @@ const FIGHTERS = [
       { opp:'Aiemann Zahabi',    date:'14.06.2026', result:'win',  method:'ტექნ. ნოკაუტი, 2 რაუნდი', role:'favorite', odds:'ფავორიტი' },
       { opp:'Song Yadong',       date:'24.01.2026', result:'win',  method:'გადაწყვეტილება, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
       { opp:'Merab Dvalishvili', date:'07.06.2025', result:'loss', method:'სუბმიშენი, 3 რაუნდი',     role:'underdog', odds:'აუტსაიდერი — სატიტულო' },
+      { opp:'Merab Dvalishvili', date:'14.09.2024', result:'loss', method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი იყო — დაკარგა ტიტული' },
     ],
   },
   {
@@ -1725,8 +1723,6 @@ function matchupAnalysis(a, b){
   collect(a, b);
   collect(b, a);
 
-  // фактический профиль финишей — просто цифры, без ярлыка «он борец/ударник»
-  const finishLine = f => `${f.name} — ${f.ko} ნოკ. · ${f.sub} სუბ. · ${f.dec} გადაწყვ.`;
   let rows = '';
 
   if (h2h.length){
@@ -1734,10 +1730,8 @@ function matchupAnalysis(a, b){
       const r = h.winner ? `<b>${h.winner}</b> მოიგო — ${h.method}` : `უ-კონტესტი — ${h.method}`;
       return `<div class="cmp-h2h-row">📅 ${h.date}: ${r}</div>`;
     }).join('');
-    rows += `<div class="cmp-h2h"><div class="cmp-h2h-head">🥇 უკვე შეხვდნენ${h2h.length > 1 ? ` (${h2h.length}-ჯერ)` : ''}:</div>${items}<div class="cmp-h2h-note">ეს არის ნამდვილი პასუხი: ქაღალდის სტატისტიკის მიუხედავად, რეალურ ბრძოლაში სტილმა და კლასმა გადაწყვიტა.</div></div>`;
+    rows += `<div class="cmp-h2h"><div class="cmp-h2h-head">🥇 უკვე შეხვდნენ${h2h.length > 1 ? ` (${h2h.length}-ჯერ)` : ''}:</div>${items}</div>`;
   }
-
-  rows += `<div class="cmp-insight"><span class="cmp-ic">🥊</span><div><b>ფინიშების პროფილი:</b><br>${finishLine(a)}<br>${finishLine(b)}</div></div>`;
 
   if (!h2h.length){
     rows += a.wclass !== b.wclass
@@ -1745,8 +1739,9 @@ function matchupAnalysis(a, b){
       : `<div class="cmp-insight"><span class="cmp-ic">⚖️</span><div>პირდაპირი ბრძოლა არ ჰქონიათ. ციფრები მხოლოდ სურათის ნაწილია — რეალურ ოქტაგონში სტილის რეალიზაცია წყვეტს, არა სტატისტიკის ჯამი.</div></div>`;
   }
 
-  // пасхалка: Топурия против НЕ-грузина — фанатская приписка 😎 (со своими не дразнимся)
-  if (a.id === 'topuria' || b.id === 'topuria'){
+  // пасхалка: Топурия против НЕ-грузина, с которым ЕЩЁ НЕ дрался — фанатская приписка 😎
+  // (со своими не дразнимся; где есть реальный бой — показываем факт, а не шутку)
+  if ((a.id === 'topuria' || b.id === 'topuria') && h2h.length === 0){
     const other = a.id === 'topuria' ? b : a;
     if (!other.flag.includes('🇬🇪')){
       rows += `<div class="cmp-insight cmp-egg"><span class="cmp-ic">🇬🇪</span><div><b>...მარა თოფურა დალეწავს 😎</b></div></div>`;
