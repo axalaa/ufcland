@@ -194,7 +194,7 @@ section.fighters{ padding:48px 0 70px; }
   position:relative; overflow:hidden;
 }
 /* фото лежит поверх инициалов; нет файла → onerror убирает <img> и видны инициалы */
-.card .photo .ph-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+.card .photo .ph-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; object-position:center; background:linear-gradient(135deg,var(--red-deep),#2a1812); z-index:1; }
 .card .photo .flag{ position:absolute; top:12px; left:12px; font-size:22px; z-index:2; }
 .card .photo .champ{
   position:absolute; top:12px; right:12px; background:var(--gold); color:#1a120c;
@@ -403,6 +403,50 @@ section.compare{ padding:10px 0 70px; }
 .cmp-h2h-note{ margin-top:9px; color:var(--gold-soft); font-size:13px; line-height:1.5; }
 .cmp-egg b{ color:var(--gold); }
 
+/* ---- аккаунт: кнопка в шапке ---- */
+.auth-area{ display:flex; align-items:center; gap:10px; }
+.auth-hi{ color:var(--muted); font-size:13px; }
+.auth-hi b{ color:var(--gold-soft); }
+.auth-btn{
+  background:var(--surface); border:1px solid var(--line); color:var(--text);
+  font-family:inherit; font-size:13px; font-weight:700; padding:8px 14px; border-radius:999px; cursor:pointer; transition:all .18s;
+}
+.auth-btn:hover{ border-color:var(--gold); }
+.auth-btn.primary{ background:linear-gradient(135deg,var(--red),var(--gold)); color:#1a120c; border-color:transparent; }
+@media(max-width:640px){ .auth-hi{ display:none; } }
+
+/* ---- модалка входа / регистрации ---- */
+.auth-modal .auth-sheet{
+  background:var(--bg-2); border:1px solid var(--line); border-radius:18px; padding:30px 26px 26px;
+  max-width:400px; width:100%; position:relative; box-shadow:var(--shadow); animation:rise .25s ease;
+}
+.auth-sheet h3{ font-size:24px; font-weight:900; margin-bottom:8px; }
+.auth-note{ color:var(--muted); font-size:12px; line-height:1.5; margin-bottom:18px; background:rgba(233,185,73,.07); border:1px solid var(--line); border-radius:8px; padding:9px 11px; }
+.auth-input{
+  width:100%; padding:13px 15px; margin-bottom:11px; background:var(--surface); border:1px solid var(--line);
+  border-radius:10px; color:var(--text); font-size:15px; font-family:inherit; outline:none; transition:border-color .2s;
+}
+.auth-input:focus{ border-color:var(--red); }
+.auth-err{ color:var(--loss); font-size:13px; min-height:18px; margin-bottom:6px; }
+.auth-submit{
+  width:100%; padding:14px; background:linear-gradient(135deg,var(--red),var(--gold)); color:#1a120c;
+  border:none; border-radius:10px; font-family:inherit; font-size:16px; font-weight:900; cursor:pointer; transition:filter .2s;
+}
+.auth-submit:hover{ filter:brightness(1.08); }
+.auth-switch{ text-align:center; color:var(--muted); font-size:13px; margin-top:14px; }
+.auth-switch a{ color:var(--gold-soft); cursor:pointer; font-weight:700; }
+
+/* ---- звезда «избранное» на карточке ---- */
+.fav-btn{
+  position:absolute; top:10px; right:10px; z-index:3; width:32px; height:32px; border-radius:50%;
+  background:rgba(0,0,0,.45); border:none; color:#fff; font-size:16px; cursor:pointer; line-height:1;
+  display:flex; align-items:center; justify-content:center; transition:transform .15s, background .2s;
+}
+.fav-btn:hover{ transform:scale(1.15); background:rgba(0,0,0,.65); }
+.fav-btn.on{ color:var(--gold); }
+.card .photo .champ{ right:48px; }   /* сдвигаем плашку чемпиона, чтобы не налезала на звезду */
+.cat.fav-cat:not(.active){ border-color:rgba(233,185,73,.45); }
+
 /* ---- боец дня ---- */
 section.fotd{ padding:28px 0 4px; }
 .fotd-card{
@@ -462,8 +506,24 @@ section.fotd{ padding:28px 0 4px; }
       <a href="#fighters">მებრძოლები</a>
       <a href="#stats">სტატისტიკა</a>
     </nav>
+    <div class="auth-area" id="authArea"><!-- вход/профиль подставит JS --></div>
   </div>
 </header>
+
+<!-- ======================= МОДАЛКА ВХОДА / РЕГИСТРАЦИИ ======================= -->
+<div class="modal auth-modal" id="authModal">
+  <div class="auth-sheet">
+    <button class="close" id="authClose" aria-label="დახურვა">×</button>
+    <h3 id="authTitle">რეგისტრაცია</h3>
+    <p class="auth-note">ⓘ ლოკალური დემო — მონაცემები ინახება მხოლოდ ამ ბრაუზერში და არ არის დაცული. გამოიყენე მარტივი პაროლი (არა ნამდვილი). რეალური შესვლა Google-ით დაემატება საიტის გამოქვეყნების შემდეგ.</p>
+    <input class="auth-input" id="authName" type="text" placeholder="სახელი" autocomplete="off">
+    <input class="auth-input" id="authEmail" type="email" placeholder="ელფოსტა" autocomplete="off">
+    <input class="auth-input" id="authPass" type="password" placeholder="პაროლი" autocomplete="off">
+    <div class="auth-err" id="authErr"></div>
+    <button class="auth-submit" id="authSubmit">რეგისტრაცია</button>
+    <p class="auth-switch"><span id="authSwitchText">უკვე გაქვს ანგარიში?</span> <a id="authSwitch">შესვლა</a></p>
+  </div>
+</div>
 
 <!-- ======================= ГЕРОЙ ======================= -->
 <section class="hero" id="hero">
@@ -1494,7 +1554,8 @@ function renderCats(){
        <small>${c.kg}</small>${c.name}
      </button>`
   ).join('');
-  $('#cats').innerHTML = all + rest;
+  const fav = AUTH.current() ? `<button class="cat fav-cat ${state.wclass==='favorites'?'active':''}" data-key="favorites">⭐ ჩემი ფავორიტები</button>` : '';
+  $('#cats').innerHTML = all + fav + rest;
 
   document.querySelectorAll('.cat').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1510,7 +1571,9 @@ function renderCats(){
 function renderGrid(){
   const q = state.query.trim().toLowerCase();
   const list = FIGHTERS.filter(f => {
-    const byClass = state.wclass === 'all' || f.wclass === state.wclass;
+    const byClass = state.wclass === 'favorites' ? getFavs().includes(f.id)
+                  : state.wclass === 'all' ? true
+                  : f.wclass === state.wclass;
     const byQuery = !q || f.name.toLowerCase().includes(q) || f.nick.toLowerCase().includes(q);
     return byClass && byQuery;
   });
@@ -1540,6 +1603,7 @@ function renderGrid(){
         <img class="ph-img" src="${photoSrc(f)}" alt="${f.name}" loading="lazy" data-fb="${PHOTOS[f.id]||''}" onload="this.style.opacity=1" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.remove();}">
         <span class="flag">${f.flag}</span>
         ${f.champion ? '<span class="champ">ჩემპიონი</span>' : ''}
+        <button class="fav-btn ${isFav(f.id)?'on':''}" data-fav="${f.id}" title="ფავორიტი" aria-label="ფავორიტი">${isFav(f.id)?'★':'☆'}</button>
       </div>
       <div class="body">
         <div class="name">${f.name}</div>
@@ -1554,6 +1618,9 @@ function renderGrid(){
 
   document.querySelectorAll('.card').forEach(card => {
     card.addEventListener('click', () => openFighter(card.dataset.id));
+  });
+  document.querySelectorAll('.fav-btn').forEach(b => {
+    b.addEventListener('click', (e) => { e.stopPropagation(); toggleFav(b.dataset.fav); });
   });
 
   renderPager(totalPages);
@@ -1798,7 +1865,82 @@ $('#sort').addEventListener('change', (e) => {
   renderGrid();
 });
 
+/* ===================== АККАУНТ (локальный прототип на localStorage) =====================
+   ВНИМАНИЕ: обучающая «болванка» — данные хранятся в браузере и НЕ защищены.
+   Реальный вход (Google) + синхронизацию добавим после публикации сайта. */
+// безопасная обёртка над localStorage: в песочнице/предпросмотре доступ может бросать
+// исключение — тогда работаем без сохранения, а не «роняем» всю страницу.
+const LS = {
+  get(k){ try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch (e) {} },
+  del(k){ try { localStorage.removeItem(k); } catch (e) {} },
+};
+const AUTH = {
+  hash(s){ let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return String(h); },
+  users(){ try { return JSON.parse(LS.get('ufc_users') || '[]'); } catch (e) { return []; } },
+  save(u){ LS.set('ufc_users', JSON.stringify(u)); },
+  current(){ const e = LS.get('ufc_session'); return e ? (this.users().find(u => u.email === e) || null) : null; },
+  register(name, email, pass){
+    if (!name || !email || !pass) return 'შეავსე ყველა ველი';
+    const users = this.users();
+    if (users.some(u => u.email === email)) return 'ასეთი ელფოსტა უკვე რეგისტრირებულია';
+    users.push({ name, email, pass: this.hash(pass) });
+    this.save(users); LS.set('ufc_session', email); return null;
+  },
+  login(email, pass){
+    const u = this.users().find(x => x.email === email);
+    if (!u || u.pass !== this.hash(pass)) return 'არასწორი ელფოსტა ან პაროლი';
+    LS.set('ufc_session', email); return null;
+  },
+  logout(){ LS.del('ufc_session'); },
+};
+
+/* избранное — привязано к текущему аккаунту */
+function getFavs(){ const u = AUTH.current(); if (!u) return []; try { return JSON.parse(LS.get('ufc_favs_' + u.email) || '[]'); } catch (e) { return []; } }
+function isFav(id){ return getFavs().includes(id); }
+function toggleFav(id){
+  const u = AUTH.current();
+  if (!u){ openAuth(); return; }                 // не вошёл → предложить регистрацию
+  let f = getFavs();
+  f = f.includes(id) ? f.filter(x => x !== id) : [...f, id];
+  LS.set('ufc_favs_' + u.email, JSON.stringify(f));
+  renderGrid(); renderCats();
+}
+
+/* шапка: кнопка входа или приветствие + выход */
+function renderAuthArea(){
+  const u = AUTH.current();
+  $('#authArea').innerHTML = u
+    ? `<span class="auth-hi">გამარჯობა, <b>${u.name}</b></span><button class="auth-btn" id="logoutBtn">გასვლა</button>`
+    : `<button class="auth-btn primary" id="loginBtn">შესვლა</button>`;
+  const lo = $('#logoutBtn'); if (lo) lo.onclick = () => { AUTH.logout(); if (state.wclass === 'favorites') state.wclass = 'all'; renderAuthArea(); renderCats(); renderGrid(); };
+  const li = $('#loginBtn'); if (li) li.onclick = openAuth;
+}
+
+/* модалка входа / регистрации */
+let authMode = 'register';
+function openAuth(){ renderAuthMode(); $('#authErr').textContent = ''; $('#authModal').classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeAuth(){ $('#authModal').classList.remove('open'); document.body.style.overflow = ''; }
+function renderAuthMode(){
+  const reg = authMode === 'register';
+  $('#authTitle').textContent = reg ? 'რეგისტრაცია' : 'შესვლა';
+  $('#authSubmit').textContent = reg ? 'რეგისტრაცია' : 'შესვლა';
+  $('#authName').style.display = reg ? 'block' : 'none';
+  $('#authSwitchText').textContent = reg ? 'უკვე გაქვს ანგარიში?' : 'ანგარიში არ გაქვს?';
+  $('#authSwitch').textContent = reg ? 'შესვლა' : 'რეგისტრაცია';
+}
+$('#authClose').addEventListener('click', closeAuth);
+$('#authModal').addEventListener('click', (e) => { if (e.target.id === 'authModal') closeAuth(); });
+$('#authSwitch').addEventListener('click', () => { authMode = (authMode === 'register') ? 'login' : 'register'; $('#authErr').textContent = ''; renderAuthMode(); });
+$('#authSubmit').addEventListener('click', () => {
+  const name = $('#authName').value.trim(), email = $('#authEmail').value.trim(), pass = $('#authPass').value;
+  const err = (authMode === 'register') ? AUTH.register(name, email, pass) : AUTH.login(email, pass);
+  if (err){ $('#authErr').textContent = err; return; }
+  closeAuth(); renderAuthArea(); renderCats(); renderGrid();
+});
+
 /* первый запуск */
+renderAuthArea();
 renderStatbar();
 renderFotd();
 renderCats();
