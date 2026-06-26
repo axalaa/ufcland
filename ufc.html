@@ -303,6 +303,38 @@ section.fighters{ padding:48px 0 70px; }
 .board-list li::before{ content:counter(rank); width:22px; height:22px; flex:none; display:flex; align-items:center; justify-content:center; background:var(--surface); border-radius:50%; font-size:12px; font-weight:800; color:var(--gold); }
 .board-list li span{ flex:1; font-weight:600; }
 .board-list li b{ color:var(--gold); font-size:17px; }
+
+/* ---- AI-агент (макет): плавающая кнопка + чат-панель ---- */
+.ai-fab{
+  position:fixed; bottom:22px; right:22px; z-index:70; width:58px; height:58px; border-radius:50%;
+  background:linear-gradient(135deg,var(--red),var(--gold)); color:#1a120c; border:none; cursor:pointer;
+  font-size:26px; box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; transition:transform .2s;
+}
+.ai-fab:hover{ transform:scale(1.07); }
+.ai-panel{
+  position:fixed; bottom:90px; right:22px; z-index:70; width:360px; max-width:calc(100vw - 32px);
+  height:520px; max-height:calc(100vh - 130px); background:var(--bg-2); border:1px solid var(--line);
+  border-radius:18px; box-shadow:var(--shadow); display:none; flex-direction:column; overflow:hidden;
+}
+.ai-panel.open{ display:flex; animation:rise .25s ease; }
+.ai-head{ display:flex; align-items:center; gap:10px; padding:13px 15px; border-bottom:1px solid var(--line); }
+.ai-ava{ width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--red),var(--gold)); display:flex; align-items:center; justify-content:center; font-size:18px; flex:none; }
+.ai-head h4{ font-size:15px; font-weight:800; flex:1; line-height:1.2; }
+.ai-head h4 .ai-sub{ display:block; font-size:11px; color:var(--gold); font-weight:600; }
+.ai-close{ background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; line-height:1; }
+.ai-msgs{ flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; }
+.ai-msg{ max-width:86%; padding:10px 13px; border-radius:14px; font-size:14px; line-height:1.45; white-space:pre-wrap; }
+.ai-msg.bot{ background:var(--surface); border:1px solid var(--line); align-self:flex-start; border-bottom-left-radius:4px; }
+.ai-msg.user{ background:linear-gradient(135deg,var(--red-deep),#2a1812); align-self:flex-end; border-bottom-right-radius:4px; }
+.ai-chips{ display:flex; flex-wrap:wrap; gap:6px; padding:0 16px 8px; }
+.ai-chip{ background:var(--surface); border:1px solid var(--line); color:var(--muted); border-radius:20px; padding:6px 11px; font-family:inherit; font-size:12px; cursor:pointer; text-align:left; }
+.ai-chip:hover{ border-color:var(--gold); color:var(--text); }
+.ai-input{ display:flex; gap:8px; padding:12px; border-top:1px solid var(--line); }
+.ai-input input{ flex:1; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:10px 12px; color:var(--text); font-family:inherit; font-size:14px; outline:none; }
+.ai-input input:focus{ border-color:var(--red); }
+.ai-send{ background:linear-gradient(135deg,var(--red),var(--gold)); color:#1a120c; border:none; border-radius:10px; padding:0 15px; font-size:16px; font-weight:800; cursor:pointer; }
+.ai-note{ font-size:11px; color:var(--muted); text-align:center; padding:0 12px 10px; margin:0; }
+@media(max-width:480px){ .ai-panel{ right:8px; left:8px; width:auto; bottom:84px; } }
 .quiz-next{
   display:block; margin:14px auto 0; background:linear-gradient(135deg,var(--red),var(--gold)); color:#1a120c;
   border:none; border-radius:10px; padding:11px 26px; font-family:inherit; font-weight:800; font-size:15px; cursor:pointer;
@@ -759,6 +791,23 @@ section.fotd{ padding:28px 0 4px; }
     <div class="quiz-board" id="quizBoard"><!-- топ-5 рекордов подставит JS --></div>
   </div>
 </section>
+
+<!-- ======================= AI-АГЕНТ (МАКЕТ) ======================= -->
+<button class="ai-fab" id="aiFab" aria-label="UFC AI ექსპერტი" title="UFC AI ექსპერტი">🤖</button>
+<div class="ai-panel" id="aiPanel">
+  <div class="ai-head">
+    <div class="ai-ava">🤖</div>
+    <h4>UFC ექსპერტი<span class="ai-sub">დემო — მალე ნამდვილი AI</span></h4>
+    <button class="ai-close" id="aiClose" aria-label="დახურვა">×</button>
+  </div>
+  <div class="ai-msgs" id="aiMsgs"></div>
+  <div class="ai-chips" id="aiChips"></div>
+  <div class="ai-input">
+    <input id="aiInput" type="text" placeholder="დაწერე კითხვა..." autocomplete="off">
+    <button class="ai-send" id="aiSend" aria-label="გაგზავნა">➤</button>
+  </div>
+  <p class="ai-note">დემო რეჟიმი — ნამდვილი AI დაერთვება გამოქვეყნების შემდეგ</p>
+</div>
 
 <!-- ======================= МОДАЛКА ======================= -->
 <div class="modal" id="modal">
@@ -2785,6 +2834,53 @@ function renderBoard(){
     rows.map(r => `<li><span>${r.name}</span><b>${r.best}</b></li>`).join('') + '</ol>';
 }
 $('#quizLoginBtn').addEventListener('click', openAuth);
+
+/* ===== AI-агент (МАКЕТ) =====
+   Сейчас это «болванка»: askAgent() возвращает демо-ответ.
+   Позже тело askAgent() заменим на fetch к нашему серверу-прокси, который дёрнет
+   Gemini/Claude с подмешанными данными из FIGHTERS (ключ живёт на сервере, не здесь). */
+const AI_SUGGESTIONS = [
+  'ვინ უფრო ძლიერია — თოფურია თუ მახაჩევი?',
+  'მოყევი ხაბიბის შესახებ',
+  'რა იცი UFC-ის ისტორიაზე?'
+];
+function aiAddMsg(text, who){
+  const div = document.createElement('div');
+  div.className = 'ai-msg ' + who;
+  div.textContent = text;                       // textContent — безопасно (без HTML-инъекций)
+  const box = $('#aiMsgs');
+  box.appendChild(div); box.scrollTop = box.scrollHeight;
+  return div;
+}
+function askAgent(question){
+  // ЗАГЛУШКА — здесь будет реальный запрос к прокси после публикации
+  return new Promise(resolve => setTimeout(() =>
+    resolve('ეს ჯერ დემოა 🤖 ნამდვილი AI დაერთვება საიტის გამოქვეყნების შემდეგ — მაშინ ვუპასუხებ ჩვენი გადამოწმებული ბაზის მიხედვით.\n\nშენი კითხვა: „' + question + '"'), 700));
+}
+let aiBusy = false;
+function aiSend(){
+  const inp = $('#aiInput'), q = inp.value.trim();
+  if (!q || aiBusy) return;
+  aiAddMsg(q, 'user'); inp.value = ''; aiBusy = true;
+  const typing = aiAddMsg('…', 'bot');
+  askAgent(q).then(ans => { typing.textContent = ans; aiBusy = false; $('#aiMsgs').scrollTop = $('#aiMsgs').scrollHeight; });
+}
+function aiOpen(){
+  $('#aiPanel').classList.add('open');
+  if (!$('#aiMsgs').children.length){
+    aiAddMsg('გამარჯობა! მე ვარ UFC-ის ექსპერტი 🥊 მკითხე ნებისმიერი რამ მებრძოლებზე, ბრძოლებზე ან UFC-ის ისტორიაზე.', 'bot');
+    $('#aiChips').innerHTML = AI_SUGGESTIONS.map(s => `<button class="ai-chip" type="button">${s}</button>`).join('');
+    document.querySelectorAll('.ai-chip').forEach(c => c.addEventListener('click', () => { $('#aiInput').value = c.textContent; aiSend(); }));
+  }
+  $('#aiInput').focus();
+}
+$('#aiFab').addEventListener('click', () => {
+  const p = $('#aiPanel');
+  p.classList.contains('open') ? p.classList.remove('open') : aiOpen();
+});
+$('#aiClose').addEventListener('click', () => $('#aiPanel').classList.remove('open'));
+$('#aiSend').addEventListener('click', aiSend);
+$('#aiInput').addEventListener('keydown', e => { if (e.key === 'Enter') aiSend(); });
 
 /* первый запуск */
 renderAuthArea();
