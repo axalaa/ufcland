@@ -228,6 +228,12 @@ section.fighters{ padding:48px 0 70px; }
   padding:40px 16px; overflow-y:auto;
 }
 .modal.open{ display:flex; }
+.share-btn{
+  margin-top:10px; background:var(--surface); border:1px solid var(--line); color:var(--text);
+  border-radius:8px; padding:6px 12px; font-family:inherit; font-size:13px; cursor:pointer;
+  transition:border-color .2s, color .2s;
+}
+.share-btn:hover{ border-color:var(--gold); color:var(--gold); }
 .sheet{
   background:var(--bg-2); border:1px solid var(--line); border-radius:20px;
   max-width:720px; width:100%; box-shadow:var(--shadow); overflow:hidden;
@@ -567,7 +573,7 @@ section.fotd{ padding:28px 0 4px; }
     <h1>გაეცანი შენს ფავორიტ <span class="accent">მებრძოლს</span></h1>
     <p class="lead">სტატისტიკა, წონითი კატეგორიები და ყოველი ბრძოლის ისტორია.</p>
     <div class="search">
-      <input id="search" type="text" placeholder="მოძებნე მებრძოლი" autocomplete="off">
+      <input id="search" type="text" placeholder="მოძებნე — სახელი, მეტსახელი, ქვეყანა" autocomplete="off">
       <span class="icon">⌕</span>
     </div>
   </div>
@@ -1794,7 +1800,8 @@ function renderGrid(){
     const byClass = state.wclass === 'favorites' ? getFavs().includes(f.id)
                   : state.wclass === 'all' ? true
                   : f.wclass === state.wclass;
-    const byQuery = !q || f.name.toLowerCase().includes(q) || f.nick.toLowerCase().includes(q);
+    const byQuery = !q || f.name.toLowerCase().includes(q) || f.nick.toLowerCase().includes(q)
+                  || (f.country && f.country.toLowerCase().includes(q));
     return byClass && byQuery;
   });
 
@@ -1905,6 +1912,7 @@ function openFighter(id){
           <span class="tag">${classOf(f.wclass).name} · ${classOf(f.wclass).kg}</span>
           <span class="tag">${f.country}</span>
         </div>
+        <button class="share-btn" id="shareBtn" type="button">🔗 გაზიარება</button>
       </div>
     </div>
     <div class="pad">
@@ -1942,6 +1950,8 @@ function openFighter(id){
 
   $('#modal').classList.add('open');
   document.body.style.overflow = 'hidden'; // фон не скроллится, пока открыта модалка
+  // адрес с #id — чтобы на бойца можно было дать прямую ссылку (replaceState не вызывает hashchange => нет циклов)
+  if (decodeURIComponent(location.hash.slice(1)) !== id) history.replaceState(null, '', '#' + id);
   $('#closeBtn').addEventListener('click', closeModal);
   const detailsBtn = document.getElementById('detailsBtn');
   if (detailsBtn) detailsBtn.addEventListener('click', () => {
@@ -1949,12 +1959,44 @@ function openFighter(id){
     d.hidden = !d.hidden;
     detailsBtn.textContent = d.hidden ? 'დეტალურად ▾' : 'დამალვა ▴';
   });
+  const shareBtn = document.getElementById('shareBtn');
+  if (shareBtn) shareBtn.addEventListener('click', () => {
+    copyText(location.href).then(() => {
+      shareBtn.textContent = '✓ დაკოპირდა';
+      setTimeout(() => { shareBtn.textContent = '🔗 გაზიარება'; }, 1500);
+    }).catch(() => {
+      shareBtn.textContent = '✕ ვერ მოხერხდა';
+      setTimeout(() => { shareBtn.textContent = '🔗 გაზიარება'; }, 1500);
+    });
+  });
+}
+
+// копируем текст в буфер: современный API, а если недоступен (напр. file://) — запасной способ
+function copyText(t){
+  if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(t);
+  return new Promise((res, rej) => {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      res();
+    } catch (e) { rej(e); }
+  });
 }
 
 function closeModal(){
   $('#modal').classList.remove('open');
   document.body.style.overflow = '';
+  // убираем #id из адреса, чтобы перезагрузка не открыла карточку снова
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
 }
+
+// прямая ссылка на бойца: открыть карточку по #id (при загрузке и при ручной смене хэша)
+function routeFromHash(){
+  const id = decodeURIComponent(location.hash.slice(1));
+  if (id && FIGHTERS.some(f => f.id === id)) openFighter(id);
+}
+window.addEventListener('hashchange', routeFromHash);
 
 /* закрытие по клику на фон и по Escape */
 $('#modal').addEventListener('click', (e) => { if(e.target.id === 'modal') closeModal(); });
@@ -2174,6 +2216,7 @@ renderFotd();
 renderCats();
 renderGrid();
 initCompare();
+routeFromHash();   // если адрес содержит #id — сразу открыть карточку бойца
 </script>
 </body>
 </html>
