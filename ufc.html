@@ -234,6 +234,41 @@ section.fighters{ padding:48px 0 70px; }
   transition:border-color .2s, color .2s;
 }
 .share-btn:hover{ border-color:var(--gold); color:var(--gold); }
+
+/* ---- витрина: чемпионы + рекорды ---- */
+.showcase{ padding:8px 0 4px; }
+.champ-row{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; margin-bottom:34px; }
+.champ-card{
+  display:flex; flex-direction:column; align-items:center; text-align:center; gap:6px;
+  background:var(--bg-2); border:1px solid var(--line); border-radius:14px; padding:16px 10px 13px;
+  cursor:pointer; font-family:inherit; color:var(--text); position:relative;
+  transition:border-color .2s, transform .2s;
+}
+.champ-card::before{ content:'🏆'; position:absolute; top:8px; right:10px; font-size:14px; opacity:.85; }
+.champ-card:hover{ border-color:var(--gold); transform:translateY(-3px); }
+.champ-photo{
+  width:84px; height:84px; border-radius:50%; overflow:hidden; position:relative;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,var(--red-deep),#2a1812);
+  color:var(--text); font-weight:800; font-size:22px; border:2px solid var(--gold);
+}
+.champ-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 20%; opacity:0; transition:opacity .3s; }
+.champ-div{ font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:.04em; }
+.champ-name{ font-weight:800; font-size:14px; }
+.champ-rec{ font-size:12px; color:var(--muted); }
+
+.records{ display:grid; grid-template-columns:repeat(auto-fill,minmax(165px,1fr)); gap:14px; }
+.rec-tile{
+  display:flex; flex-direction:column; align-items:flex-start; gap:3px;
+  background:var(--bg-2); border:1px solid var(--line); border-radius:14px; padding:15px 16px;
+  cursor:pointer; font-family:inherit; color:var(--text); text-align:left;
+  transition:border-color .2s, transform .2s;
+}
+.rec-tile:hover{ border-color:var(--gold); transform:translateY(-3px); }
+.rec-icon{ font-size:20px; }
+.rec-val{ font-size:26px; font-weight:900; color:var(--gold); line-height:1.1; }
+.rec-label{ font-size:12px; color:var(--muted); }
+.rec-who{ font-size:13px; font-weight:700; margin-top:2px; }
 .sheet{
   background:var(--bg-2); border:1px solid var(--line); border-radius:20px;
   max-width:720px; width:100%; box-shadow:var(--shadow); overflow:hidden;
@@ -591,6 +626,23 @@ section.fotd{ padding:28px 0 4px; }
   </div>
 </section>
 
+<!-- ======================= ВИТРИНА: ЧЕМПИОНЫ + РЕКОРДЫ ======================= -->
+<section class="showcase">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>მოქმედი ჩემპიონები</h2>
+      <span class="hint">დივიზიონების მფლობელები — დააჭირე ბარათს</span>
+    </div>
+    <div class="champ-row" id="champRow"><!-- чемпионов подставит JS --></div>
+
+    <div class="section-head">
+      <h2>რეკორდები</h2>
+      <span class="hint">ბაზის ლიდერები ციფრებში</span>
+    </div>
+    <div class="records" id="records"><!-- рекорды подставит JS --></div>
+  </div>
+</section>
+
 <!-- ======================= БОЙЦЫ ======================= -->
 <section class="fighters" id="fighters">
   <div class="wrap">
@@ -776,6 +828,27 @@ const FIGHTERS = [
       { opp:'Alexander Volkanovski', date:'21.10.2023', result:'win', method:'ნოკაუტი, 1 რაუნდი',        role:'favorite', odds:'ფავორიტი' },
       { opp:'Charles Oliveira',      date:'22.10.2022', result:'win', method:'სუბმიშენი, 2 რაუნდი',      role:'favorite', odds:'ფავორიტი — ვაკანტური ტიტული' },
       { opp:'Alexander Volkanovski', date:'11.02.2023', result:'win', method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი — ტიტულის დაცვა' },
+    ],
+  },
+  {
+    id:'khabib', name:'Khabib Nurmagomedov', nick:'The Eagle', flag:'🇷🇺',
+    details:{
+      born:'20 სექტემბერი 1988',
+      birthplace:'სოფ. სილდი, დაღესტანი, რუსეთი',
+      team:'American Kickboxing Academy / Eagles MMA',
+      style:'საბრძოლო სამბო · ჭიდაობა · ჯუდო',
+      nickFrom:'„არწივი" (The Eagle) — დაკავშირებულია მის გუნდ Eagles MMA-სა და დაღესტნურ სიმბოლიკასთან.',
+      text:'დაიბადა 1988 წლის 20 სექტემბერს დაღესტნის მთიან სოფელ სილდიში; წარმოშობით ავარია. ბავშვობიდან ვარჯიშობდა მამის, აბდულმანაპის ხელმძღვანელობით — ცნობილია ბავშვობის კადრი, სადაც პატარა ხაბიბი დათვს ერევა.\n\nსაბრძოლო სამბოს ორგზის მსოფლიო ჩემპიონი; ვარჯიშობს American Kickboxing Academy-ში (კალიფორნია) და თანადამფუძნებელია Eagles MMA-ის. ცნობილია გადაულახავი წნეხითა და ground-and-pound-ით.\n\n2018 წელს მოიგო მსუბუქი წონის ვაკანტური ტიტული და დაიცვა მაკგრეგორთან, პუარიესა და გეთჯისთან. 2020 წლის 24 ოქტომბერს, მამის გარდაცვალების შემდეგ, უძლეველი (29-0) გავიდა პენსიაზე — დედისთვის მიცემული პირობის გამო. დღეს ისლამ მახაჩკალას მწვრთნელია.',
+    },
+    wclass:'lightweight', champion:false, country:'რუსეთი (დაღესტანი)',
+    rec:{w:29,l:0,d:0}, ko:8, sub:11, dec:10, height:'178 სმ', reach:'178 სმ', age:37,
+    bio:'ისტორიის ერთ-ერთი უდიდესი მებრძოლი — დაუმარცხებელი (29-0). ლეგენდარული ჭიდაობითა და წნეხით ცნობილი ყოფილი მსუბუქი წონის ჩემპიონი; 2020 წელს უძლეველი გავიდა პენსიაზე.',
+    fights:[
+      { opp:'Justin Gaethje',       date:'24.10.2020', result:'win', method:'სუბმიშენი, 2 რაუნდი',     role:'favorite', odds:'ფავორიტი — ტიტულის დაცვა' },
+      { opp:'Dustin Poirier',       date:'07.09.2019', result:'win', method:'სუბმიშენი, 3 რაუნდი',     role:'favorite', odds:'ფავორიტი — ტიტულის დაცვა' },
+      { opp:'Conor McGregor',       date:'06.10.2018', result:'win', method:'სუბმიშენი, 4 რაუნდი',     role:'favorite', odds:'ფავორიტი — ტიტულის დაცვა' },
+      { opp:'Al Iaquinta',          date:'07.04.2018', result:'win', method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი — ვაკანტური ტიტული' },
+      { opp:'Edson Barboza',        date:'30.12.2017', result:'win', method:'გადაწყვეტილება, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
     ],
   },
   {
@@ -1718,6 +1791,7 @@ const PHOTOS = {
   volkanovski:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Alexander_Volkanovski_at_UFC_232.jpg/500px-Alexander_Volkanovski_at_UFC_232.jpg',
   holloway:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Blue_Angels%27_VIP_Rider_Max_Holloway_%281%29_%28cropped%29.jpg/500px-Blue_Angels%27_VIP_Rider_Max_Holloway_%281%29_%28cropped%29.jpg',
   makhachev:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Islam_Makhachev_and_Sergey_Melikov_2025_%28cropped%29.jpg/500px-Islam_Makhachev_and_Sergey_Melikov_2025_%28cropped%29.jpg',
+  khabib:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Khabib_nurmagomedov.jpg/500px-Khabib_nurmagomedov.jpg',
   mcgregor:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Conor_McGregor_2025.jpeg/500px-Conor_McGregor_2025.jpeg',
   edwards:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Leon_Edwards_2021.png/500px-Leon_Edwards_2021.png',
   adesanya:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Israel_Adesanya_at_UFC_230.jpg/500px-Israel_Adesanya_at_UFC_230.jpg',
@@ -1810,8 +1884,10 @@ function renderGrid(){
   else if (state.sort === 'ko') list.sort((a, b) => b.ko - a.ko);
   else if (state.sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name));
   else if (state.wclass === 'all') {
-    // по умолчанию в «ყველა»: сначала грузины, потом чемпионы, потом остальные
-    const prio = f => f.flag.includes('🇬🇪') ? 0 : (f.champion ? 1 : 2);
+    // по умолчанию в «ყველა»: грузины первыми; чемпионов отдельно НЕ поднимаем —
+    // их уже выделяет витрина наверху, иначе вышел бы дубль «грузины → чемпионы».
+    // sort стабилен, поэтому остальные сохраняют естественный порядок массива.
+    const prio = f => f.flag.includes('🇬🇪') ? 0 : 1;
     list.sort((a, b) => prio(a) - prio(b));
   }
 
@@ -2120,6 +2196,47 @@ function renderFotd(){
   $('#fotdCard').onclick = () => openFighter(f.id);
 }
 
+/* витрина действующих чемпионов (по порядку весовых категорий) */
+function renderChampions(){
+  const order = WEIGHT_CLASSES.map(c => c.key);
+  const champs = FIGHTERS.filter(f => f.champion)
+    .sort((a, b) => order.indexOf(a.wclass) - order.indexOf(b.wclass));
+  $('#champRow').innerHTML = champs.map(f => `
+    <button class="champ-card" data-id="${f.id}">
+      <div class="champ-photo">${initials(f.name)}<img src="${photoSrc(f)}" alt="${f.name}" data-fb="${PHOTOS[f.id]||''}" onload="this.style.opacity=1" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.remove();}"></div>
+      <span class="champ-div">${classOf(f.wclass).name}</span>
+      <span class="champ-name">${f.name} ${f.flag}</span>
+      <span class="champ-rec">${recStr(f.rec)}</span>
+    </button>`).join('');
+  document.querySelectorAll('.champ-card').forEach(b =>
+    b.addEventListener('click', () => openFighter(b.dataset.id)));
+}
+
+/* рекорды базы — лидеры в цифрах (считаются из массива FIGHTERS) */
+function renderRecords(){
+  const max = sel => FIGHTERS.reduce((a, b) => sel(b) > sel(a) ? b : a);
+  const min = sel => FIGHTERS.reduce((a, b) => sel(b) < sel(a) ? b : a);
+  const koL  = max(f => f.ko);
+  const winL = max(f => f.rec.w);
+  const subL = max(f => f.sub);
+  const young = min(f => f.age);
+  const recs = [
+    { icon:'🥊', val:koL.ko,     label:'ყველაზე მეტი ნოკაუტი',   f:koL  },
+    { icon:'🏆', val:winL.rec.w, label:'ყველაზე მეტი გამარჯვება', f:winL },
+    { icon:'🤼', val:subL.sub,   label:'ყველაზე მეტი სუბმიშენი',  f:subL },
+    { icon:'🎂', val:young.age + ' წ.', label:'უმცროსი მებრძოლი', f:young },
+  ];
+  $('#records').innerHTML = recs.map(r => `
+    <button class="rec-tile" data-id="${r.f.id}">
+      <span class="rec-icon">${r.icon}</span>
+      <span class="rec-val">${r.val}</span>
+      <span class="rec-label">${r.label}</span>
+      <span class="rec-who">${r.f.name} ${r.f.flag}</span>
+    </button>`).join('');
+  document.querySelectorAll('.rec-tile').forEach(b =>
+    b.addEventListener('click', () => openFighter(b.dataset.id)));
+}
+
 /* сортировка карточек */
 $('#sort').addEventListener('change', (e) => {
   state.sort = e.target.value;
@@ -2212,6 +2329,8 @@ $('#authSubmit').addEventListener('click', () => {
 /* первый запуск */
 renderAuthArea();
 renderStatbar();
+renderChampions();
+renderRecords();
 renderFotd();
 renderCats();
 renderGrid();
