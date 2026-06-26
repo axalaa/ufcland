@@ -269,6 +269,34 @@ section.fighters{ padding:48px 0 70px; }
 .rec-val{ font-size:26px; font-weight:900; color:var(--gold); line-height:1.1; }
 .rec-label{ font-size:12px; color:var(--muted); }
 .rec-who{ font-size:13px; font-weight:700; margin-top:2px; }
+
+/* ---- мини-игра «угадай бойца» ---- */
+.quiz{ padding-bottom:20px; }
+.quiz-card{ background:var(--bg-2); border:1px solid var(--line); border-radius:18px; padding:22px; max-width:520px; margin:0 auto; }
+.quiz-scoreboard{ display:flex; justify-content:center; gap:24px; margin-bottom:18px; color:var(--muted); font-size:14px; }
+.quiz-scoreboard b{ color:var(--gold); font-size:17px; }
+.quiz-photo{
+  width:200px; height:200px; margin:0 auto 18px; border-radius:14px; overflow:hidden; position:relative;
+  background:linear-gradient(135deg,var(--red-deep),#2a1812); display:flex; align-items:center; justify-content:center;
+}
+.quiz-photo::after{ content:'?'; font-size:60px; font-weight:900; color:rgba(255,255,255,.15); }
+.quiz-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 20%; opacity:0; transition:opacity .3s, transform .4s ease; z-index:1; }
+.quiz-options{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.quiz-opt{
+  background:var(--surface); border:1px solid var(--line); color:var(--text); border-radius:10px;
+  padding:12px 10px; font-family:inherit; font-size:14px; cursor:pointer; transition:border-color .2s, background .2s;
+}
+.quiz-opt:hover:not(:disabled){ border-color:var(--gold); }
+.quiz-opt:disabled{ cursor:default; opacity:.9; }
+.quiz-opt.right{ background:rgba(45,160,90,.25); border-color:#3fa35f; color:#eafff0; }
+.quiz-opt.wrong{ background:rgba(220,60,60,.22); border-color:var(--red); }
+.quiz-feedback{ text-align:center; min-height:22px; margin-top:14px; font-weight:700; }
+.quiz-feedback.ok{ color:#5fd089; }
+.quiz-feedback.no{ color:var(--red); }
+.quiz-next{
+  display:block; margin:14px auto 0; background:linear-gradient(135deg,var(--red),var(--gold)); color:#1a120c;
+  border:none; border-radius:10px; padding:11px 26px; font-family:inherit; font-weight:800; font-size:15px; cursor:pointer;
+}
 .sheet{
   background:var(--bg-2); border:1px solid var(--line); border-radius:20px;
   max-width:720px; width:100%; box-shadow:var(--shadow); overflow:hidden;
@@ -555,6 +583,7 @@ section.fotd{ padding:28px 0 4px; }
       <a href="#hero">მთავარი</a>
       <a href="#fighters">მებრძოლები</a>
       <a href="#stats">სტატისტიკა</a>
+      <a href="#game">თამაში</a>
     </nav>
     <div class="auth-area" id="authArea"><!-- вход/профиль подставит JS --></div>
   </div>
@@ -686,6 +715,27 @@ section.fotd{ padding:28px 0 4px; }
       <select id="cmpB" class="cmp-select"></select>
     </div>
     <div class="cmp-result" id="cmpResult"><!-- сравнение подставит JS --></div>
+  </div>
+</section>
+
+<!-- ======================= МИНИ-ИГРА: УГАДАЙ БОЙЦА ======================= -->
+<section class="quiz" id="game">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>გამოიცანი მებრძოლი</h2>
+      <span class="hint">სურათზე ვინ არის? აირჩიე სწორი პასუხი</span>
+    </div>
+    <div class="quiz-card">
+      <div class="quiz-scoreboard">
+        <span>ქულა: <b id="quizScore">0</b></span>
+        <span>სერია: <b id="quizStreak">0</b></span>
+        <span>რეკორდი: <b id="quizBest">0</b></span>
+      </div>
+      <div class="quiz-photo" id="quizPhoto"></div>
+      <div class="quiz-options" id="quizOptions"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      <button class="quiz-next" id="quizNext" hidden>შემდეგი →</button>
+    </div>
   </div>
 </section>
 
@@ -2326,6 +2376,74 @@ $('#authSubmit').addEventListener('click', () => {
   closeAuth(); renderAuthArea(); renderCats(); renderGrid();
 });
 
+/* ---- мини-игра «угадай бойца»: показываем фото, угадай имя из 4 вариантов ---- */
+const QUIZ_POOL = FIGHTERS.filter(f => PHOTOS[f.id]); // только бойцы с реальным фото (иначе спойлер инициалами)
+let quizScore = 0, quizStreak = 0, quizPick = null, quizLocked = false, quizRecent = [];
+
+function quizShuffle(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function quizBestVal(){ return +(LS.get('ufc_quiz_best') || 0); }
+
+function newQuiz(){
+  quizLocked = false;
+  // не повторяем недавних бойцов (последние 5), чтобы фото не выскакивали подряд
+  const avoid = QUIZ_POOL.length > 6 ? quizRecent : [];
+  const pickable = QUIZ_POOL.filter(f => !avoid.includes(f.id));
+  const correct = pickable[Math.floor(Math.random() * pickable.length)];
+  quizPick = correct;
+  quizRecent.push(correct.id);
+  if (quizRecent.length > 5) quizRecent.shift();
+  // отвлекающие варианты: по возможности из той же весовой категории (сложнее), иначе любые
+  const others = QUIZ_POOL.filter(f => f.id !== correct.id);
+  const same = others.filter(f => f.wclass === correct.wclass);
+  const pool = same.length >= 3 ? same : others;
+  const options = quizShuffle([correct, ...quizShuffle(pool).slice(0, 3)]);
+
+  // alt="?" и отсутствие инициалов — чтобы фото не выдало ответ раньше времени
+  $('#quizPhoto').innerHTML = `<img src="${photoSrc(correct)}" alt="?" data-fb="${PHOTOS[correct.id]||''}" onload="this.style.opacity=1" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.style.opacity=1;}">`;
+  // показываем только случайный фрагмент фото (зум в случайную точку) — так сложнее узнать
+  const qimg = $('#quizPhoto').querySelector('img');
+  const zx = 20 + Math.random() * 60, zy = 20 + Math.random() * 60, zoom = (2 + Math.random() * 0.8).toFixed(2);
+  qimg.style.transformOrigin = zx + '% ' + zy + '%';
+  qimg.style.transform = 'scale(' + zoom + ')';
+  $('#quizOptions').innerHTML = options.map(f =>
+    `<button class="quiz-opt" data-id="${f.id}">${f.name} ${f.flag}</button>`).join('');
+  const fb = $('#quizFeedback'); fb.textContent = ''; fb.className = 'quiz-feedback';
+  $('#quizNext').hidden = true;
+
+  document.querySelectorAll('.quiz-opt').forEach(b => b.addEventListener('click', () => quizAnswer(b)));
+}
+
+function quizAnswer(btn){
+  if (quizLocked) return;
+  quizLocked = true;
+  const right = btn.dataset.id === quizPick.id;
+  document.querySelectorAll('.quiz-opt').forEach(b => {
+    b.disabled = true;
+    if (b.dataset.id === quizPick.id) b.classList.add('right');
+    else if (b === btn) b.classList.add('wrong');
+  });
+  const fb = $('#quizFeedback');
+  if (right){
+    quizScore++; quizStreak++;
+    if (quizStreak > quizBestVal()) LS.set('ufc_quiz_best', quizStreak);
+    fb.textContent = '✓ სწორია!'; fb.classList.add('ok');
+  } else {
+    quizStreak = 0;
+    fb.textContent = '✕ ეს არის ' + quizPick.name; fb.classList.add('no');
+  }
+  $('#quizScore').textContent = quizScore;
+  $('#quizStreak').textContent = quizStreak;
+  $('#quizBest').textContent = quizBestVal();
+  // после ответа показываем фото целиком — видно, кто это был
+  const qimg = $('#quizPhoto').querySelector('img');
+  if (qimg){ qimg.style.transformOrigin = 'center'; qimg.style.transform = 'scale(1)'; }
+}
+$('#quizNext').addEventListener('click', newQuiz);
+
 /* первый запуск */
 renderAuthArea();
 renderStatbar();
@@ -2335,6 +2453,8 @@ renderFotd();
 renderCats();
 renderGrid();
 initCompare();
+$('#quizBest').textContent = quizBestVal();  // показать сохранённый рекорд серии
+newQuiz();                                   // первый вопрос мини-игры
 routeFromHash();   // если адрес содержит #id — сразу открыть карточку бойца
 </script>
 </body>
