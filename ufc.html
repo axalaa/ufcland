@@ -293,6 +293,16 @@ section.fighters{ padding:48px 0 70px; }
 .quiz-feedback{ text-align:center; min-height:22px; margin-top:14px; font-weight:700; }
 .quiz-feedback.ok{ color:#5fd089; }
 .quiz-feedback.no{ color:var(--red); }
+.quiz-locked{ text-align:center; background:var(--bg-2); border:1px solid var(--line); border-radius:18px; padding:30px 22px; max-width:520px; margin:0 auto; }
+.quiz-locked p{ color:var(--muted); margin-bottom:16px; }
+.quiz-login-btn{ background:linear-gradient(135deg,var(--red),var(--gold)); color:#1a120c; border:none; border-radius:10px; padding:11px 24px; font-family:inherit; font-weight:800; font-size:15px; cursor:pointer; }
+.quiz-board{ max-width:520px; margin:22px auto 0; }
+.board-title{ text-align:center; font-size:16px; font-weight:800; margin-bottom:12px; }
+.board-list{ list-style:none; counter-reset:rank; padding:0; }
+.board-list li{ counter-increment:rank; display:flex; align-items:center; gap:10px; background:var(--bg-2); border:1px solid var(--line); border-radius:10px; padding:9px 14px; margin-bottom:8px; }
+.board-list li::before{ content:counter(rank); width:22px; height:22px; flex:none; display:flex; align-items:center; justify-content:center; background:var(--surface); border-radius:50%; font-size:12px; font-weight:800; color:var(--gold); }
+.board-list li span{ flex:1; font-weight:600; }
+.board-list li b{ color:var(--gold); font-size:17px; }
 .quiz-next{
   display:block; margin:14px auto 0; background:linear-gradient(135deg,var(--red),var(--gold)); color:#1a120c;
   border:none; border-radius:10px; padding:11px 26px; font-family:inherit; font-weight:800; font-size:15px; cursor:pointer;
@@ -665,10 +675,16 @@ section.fotd{ padding:28px 0 4px; }
     <div class="champ-row" id="champRow"><!-- чемпионов подставит JS --></div>
 
     <div class="section-head">
-      <h2>რეკორდები</h2>
-      <span class="hint">ბაზის ლიდერები ციფრებში</span>
+      <h2>ბაზის ლიდერები</h2>
+      <span class="hint">ჩვენს საიტზე დამატებული მებრძოლების საერთო MMA მაჩვენებლები</span>
     </div>
     <div class="records" id="records"><!-- рекорды подставит JS --></div>
+
+    <div class="section-head">
+      <h2>UFC-ის რეალური რეკორდები</h2>
+      <span class="hint">ოფიციალური UFC all-time მაჩვენებლები — არა ჩვენი ბაზის გამოთვლა</span>
+    </div>
+    <div class="records" id="ufcRecords"><!-- UFC რეკორდებს JS ჩასვამს --></div>
   </div>
 </section>
 
@@ -725,7 +741,11 @@ section.fotd{ padding:28px 0 4px; }
       <h2>გამოიცანი მებრძოლი</h2>
       <span class="hint">სურათზე ვინ არის? აირჩიე სწორი პასუხი</span>
     </div>
-    <div class="quiz-card">
+    <div class="quiz-locked" id="quizLocked" hidden>
+      <p>🔒 თამაში ხელმისაწვდომია მხოლოდ რეგისტრირებული მომხმარებლებისთვის.</p>
+      <button class="quiz-login-btn" id="quizLoginBtn">შესვლა / რეგისტრაცია</button>
+    </div>
+    <div class="quiz-card" id="quizCard" hidden>
       <div class="quiz-scoreboard">
         <span>ქულა: <b id="quizScore">0</b></span>
         <span>სერია: <b id="quizStreak">0</b></span>
@@ -736,6 +756,7 @@ section.fotd{ padding:28px 0 4px; }
       <div class="quiz-feedback" id="quizFeedback"></div>
       <button class="quiz-next" id="quizNext" hidden>შემდეგი →</button>
     </div>
+    <div class="quiz-board" id="quizBoard"><!-- топ-5 рекордов подставит JS --></div>
   </div>
 </section>
 
@@ -888,7 +909,7 @@ const FIGHTERS = [
       team:'American Kickboxing Academy / Eagles MMA',
       style:'საბრძოლო სამბო · ჭიდაობა · ჯუდო',
       nickFrom:'„არწივი" (The Eagle) — დაკავშირებულია მის გუნდ Eagles MMA-სა და დაღესტნურ სიმბოლიკასთან.',
-      text:'დაიბადა 1988 წლის 20 სექტემბერს დაღესტნის მთიან სოფელ სილდიში; წარმოშობით ავარია. ბავშვობიდან ვარჯიშობდა მამის, აბდულმანაპის ხელმძღვანელობით — ცნობილია ბავშვობის კადრი, სადაც პატარა ხაბიბი დათვს ერევა.\n\nსაბრძოლო სამბოს ორგზის მსოფლიო ჩემპიონი; ვარჯიშობს American Kickboxing Academy-ში (კალიფორნია) და თანადამფუძნებელია Eagles MMA-ის. ცნობილია გადაულახავი წნეხითა და ground-and-pound-ით.\n\n2018 წელს მოიგო მსუბუქი წონის ვაკანტური ტიტული და დაიცვა მაკგრეგორთან, პუარიესა და გეთჯისთან. 2020 წლის 24 ოქტომბერს, მამის გარდაცვალების შემდეგ, უძლეველი (29-0) გავიდა პენსიაზე — დედისთვის მიცემული პირობის გამო. დღეს ისლამ მახაჩკალას მწვრთნელია.',
+      text:'დაიბადა 1988 წლის 20 სექტემბერს დაღესტნის მთიან სოფელ სილდიში; წარმოშობით ავარია. ბავშვობიდან ვარჯიშობდა მამის, აბდულმანაპის ხელმძღვანელობით — ცნობილია ბავშვობის კადრი, სადაც პატარა ხაბიბი დათვს ერევა.\n\nსაბრძოლო სამბოს ორგზის მსოფლიო ჩემპიონი; ვარჯიშობს American Kickboxing Academy-ში (კალიფორნია) და თანადამფუძნებელია Eagles MMA-ის. ცნობილია გადაულახავი წნეხითა და ground-and-pound-ით.\n\n2018 წელს მოიგო მსუბუქი წონის ვაკანტური ტიტული და დაიცვა მაკგრეგორთან, პუარიესა და გეთჯისთან. 2020 წლის 24 ოქტომბერს, მამის გარდაცვალების შემდეგ, უძლეველი (29-0) გავიდა პენსიაზე — დედისთვის მიცემული პირობის გამო. დღეს ისლამ მახაჩევის მწვრთნელია.',
     },
     wclass:'lightweight', champion:false, country:'რუსეთი (დაღესტანი)',
     rec:{w:29,l:0,d:0}, ko:8, sub:11, dec:10, height:'178 სმ', reach:'178 სმ', age:37,
@@ -919,6 +940,133 @@ const FIGHTERS = [
       { opp:'Dustin Poirier',         date:'24.01.2021', result:'loss', method:'ტექნ. ნოკაუტი, 2 რაუნდი', role:'favorite', odds:'ფავორიტი იყო' },
       { opp:'Donald Cerrone',        date:'18.01.2020', result:'win',  method:'ტექნ. ნოკაუტი, 40 წამი',  role:'favorite', odds:'ფავორიტი' },
       { opp:'Khabib Nurmagomedov',   date:'06.10.2018', result:'loss', method:'სუბმიშენი, 4 რაუნდი',     role:'underdog', odds:'აუტსაიდერი' },
+    ],
+  },
+  {
+    id:'poirier', name:'Dustin Poirier', nick:'The Diamond', flag:'🇺🇸',
+    details:{
+      born:'19 იანვარი 1989',
+      birthplace:'ლაფაიეტი, ლუიზიანა, აშშ',
+      team:'American Top Team (ფლორიდა)',
+      style:'კრივი · მუხლის დარტყმები · ჯიუ-ჯიცუ (შავი ქამარი)',
+      nickFrom:'„The Diamond" (ბრილიანტი) — ზეწოლის ქვეშ გამობრძმედილი ხასიათის სიმბოლო.',
+      text:'დაიბადა 1989 წლის 19 იანვარს ლუიზიანის ქალაქ ლაფაიეტში. მოზარდობაში ქუჩურ ჩხუბებში ერეოდა, სანამ საბრძოლო სპორტი ცხოვრებას შეცვლიდა; ვარჯიშობდა American Top Team-ში, სადაც ჯიუ-ჯიცუს შავი ქამარი მოიპოვა.\n\nმსუბუქი წონის ერთ-ერთი ყველაზე საყვარელი მებრძოლი. 2019 წელს მოიგო დროებითი ჩემპიონობა ჰოლოუესთან, თუმცა სამჯერ წააგო სრულ სატიტულო ბრძოლაში — ხაბიბთან, ოლივეირასა და მახაჩევთან. ცნობილია მძლავრი კრივითა და მუხლის დარტყმებით.\n\nორჯერ დაამარცხა კონორ მაკგრეგორი (2021). 2025 წლის 19 ივლისს, ჰოლოუესთან ბრძოლის შემდეგ, კარიერა დაასრულა. დღეს ლუიზიანაში ცხოვრობს ოჯახთან ერთად და ქველმოქმედებითაა დაკავებული.',
+    },
+    wclass:'lightweight', champion:false, country:'აშშ',
+    rec:{w:30,l:10,d:0}, ko:15, sub:8, dec:7, height:'175 სმ', reach:'183 სმ', age:37,
+    bio:'მსუბუქი წონის ლეგენდა, ყოფილი დროებითი ჩემპიონი და „BMF" სარტყლის მფლობელი. ცნობილი მძლავრი კრივითა და გულადი ბრძოლებით; 2025 წელს კარიერა დაასრულა.',
+    fights:[
+      { opp:'Max Holloway',     date:'19.07.2025', result:'loss', method:'გადაწყვეტილება, 5 რაუნდი', role:'even',     odds:'სამმაგი დაპირისპირების ფინალი' },
+      { opp:'Islam Makhachev',  date:'01.06.2024', result:'loss', method:'სუბმიშენი, 5 რაუნდი',      role:'underdog', odds:'აუტსაიდერი — სატიტულო' },
+      { opp:'Justin Gaethje',   date:'29.07.2023', result:'win',  method:'ნოკაუტი, 2 რაუნდი',        role:'underdog', odds:'„BMF" ტიტული' },
+      { opp:'Charles Oliveira', date:'11.12.2021', result:'loss', method:'სუბმიშენი, 3 რაუნდი',      role:'favorite', odds:'ფავორიტი იყო — სატიტულო' },
+      { opp:'Conor McGregor',   date:'10.07.2021', result:'win',  method:'ტექნ. ნოკაუტი, 1 რაუნდი',  role:'favorite', odds:'ფავორიტი' },
+      { opp:'Conor McGregor',   date:'24.01.2021', result:'win',  method:'ტექნ. ნოკაუტი, 2 რაუნდი',  role:'underdog', odds:'აუტსაიდერი' },
+    ],
+  },
+  {
+    id:'ferguson', name:'Tony Ferguson', nick:'El Cucuy', flag:'🇺🇸',
+    details:{
+      born:'12 თებერვალი 1984',
+      birthplace:'ოქსნარდი, კალიფორნია, აშშ',
+      team:'ინდივიდუალური ბანაკი — ორინჯ-ქაუნთი, კალიფორნია',
+      style:'არაორთოდოქსული სტრაიკინგი · ელბოები · დარსის გუდვა',
+      nickFrom:'„El Cucuy" — ლათინოამერიკული ფოლკლორის საშინელი არსება („ბუკა"); მისი ექსცენტრიული იმიჯის სიმბოლო.',
+      text:'დაიბადა 1984 წლის 12 თებერვალს კალიფორნიის ქალაქ ოქსნარდში. კოლეჯში ჭიდაობდა, შემდეგ კი MMA-ს მიჰყვა და გამოირჩა ფენომენალური გამძლეობითა და არასტანდარტული სტრაიკინგით.\n\n2011 წელს მოიგო შოუ „The Ultimate Fighter", 2017 წელს კი — მსუბუქი წონის დროებითი ტიტული. 2013–2018 წლებში 12 ბრძოლა ზედიზედ მოიგო და მსოფლიოს #1 კონტენდერად ითვლებოდა.\n\nხაბიბთან ბრძოლა ხუთჯერ დაიგეგმა და ხუთჯერვე ჩაიშალა — MMA-ის ისტორიის ყველაზე „დაწყევლილი" დაპირისპირება. 2019 წლის შემდეგ ფორმა დაკარგა და ხანგრძლივ უარყოფით სერიაში აღმოჩნდა.',
+    },
+    wclass:'lightweight', champion:false, country:'აშშ',
+    rec:{w:25,l:11,d:0}, ko:12, sub:8, dec:5, height:'183 სმ', reach:'194 სმ', age:42,
+    bio:'მსუბუქი წონის ყოფილი დროებითი ჩემპიონი, ცნობილი ფანტასტიკური გამძლეობითა და არასტანდარტული სტრაიკინგით. ერთ დროს 12 ბრძოლა ზედიზედ მოიგო.',
+    fights:[
+      { opp:'Justin Gaethje',   date:'09.05.2020', result:'loss', method:'ტექნ. ნოკაუტი, 5 რაუნდი', role:'favorite', odds:'ფავორიტი იყო — დროებითი სატიტულო' },
+      { opp:'Donald Cerrone',   date:'08.06.2019', result:'win',  method:'ტექნ. ნოკაუტი, 2 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Anthony Pettis',   date:'07.10.2018', result:'win',  method:'ტექნ. ნოკაუტი, 2 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Kevin Lee',        date:'07.10.2017', result:'win',  method:'სუბმიშენი, 3 რაუნდი',     role:'favorite', odds:'ფავორიტი — დროებითი ტიტული' },
+      { opp:'Charles Oliveira', date:'12.12.2020', result:'loss', method:'სუბმიშენი, 3 რაუნდი',     role:'even',     odds:'თანაბარი შანსები' },
+    ],
+  },
+  {
+    id:'figueiredo', name:'Deiveson Figueiredo', nick:'God of War', flag:'🇧🇷',
+    details:{
+      born:'18 დეკემბერი 1987',
+      birthplace:'სოური, პარა, ბრაზილია',
+      team:'Fight Ready (არიზონა)',
+      style:'ჯიუ-ჯიცუ (შავი ქამარი) · ჭიდაობა · კაპოეირა · ნოკაუტ-ძალა',
+      nickFrom:'„Deus da Guerra" — პორტუგალიურად „ომის ღმერთი"; აგრესიული, ფინიშერული სტილის გამო.',
+      text:'დაიბადა 1987 წლის 18 დეკემბერს ბრაზილიის ქალაქ სოურეში (პარას შტატი). ცნობილია მცირე წონის კატეგორიისთვის უჩვეულო ნოკაუტ-ძალით; ფლობს ჯიუ-ჯიცუს შავ ქამარს და ვარჯიშობს Fight Ready-ში (არიზონა).\n\nორგზის ფრენის წონის ჩემპიონი; ბრენდონ მორენოსთან ისტორიული ოთხი ბრძოლა გამართა — დივიზიონის ერთ-ერთი ყველაზე ცნობილი რივალობა.\n\n2023 წლის ბოლოს ბანტამის წონაში ავიდა. ცნობილია „ომის ღმერთის" ლაღი ხასიათითა და სანახაობრივი ფინიშებით.',
+    },
+    wclass:'bantamweight', champion:false, country:'ბრაზილია',
+    rec:{w:25,l:7,d:1}, ko:9, sub:9, dec:7, height:'165 სმ', reach:'173 სმ', age:38,
+    bio:'ორგზის ფრენის წონის ჩემპიონი, ცნობილი მცირე წონისთვის უჩვეულო ნოკაუტ-ძალით. 2023 წელს ბანტამის წონაში ავიდა.',
+    fights:[
+      { opp:'Song Yadong',         date:'30.05.2026', result:'loss', method:'სუბმიშენი, 2 რაუნდი',      role:'even',     odds:'თანაბარი შანსები' },
+      { opp:'Umar Nurmagomedov',   date:'24.01.2026', result:'loss', method:'გადაწყვეტილება, 3 რაუნდი', role:'underdog', odds:'აუტსაიდერი' },
+      { opp:'Cory Sandhagen',      date:'03.05.2025', result:'loss', method:'ტექნ. ნოკაუტი, 2 რაუნდი',  role:'even',     odds:'თანაბარი შანსები' },
+      { opp:'Brandon Moreno',      date:'22.01.2022', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი', role:'even',     odds:'დაიბრუნა ტიტული' },
+      { opp:'Brandon Moreno',      date:'12.06.2021', result:'loss', method:'სუბმიშენი, 3 რაუნდი',      role:'favorite', odds:'ფავორიტი იყო — დაკარგა ტიტული' },
+    ],
+  },
+  {
+    id:'miocic', name:'Stipe Miocic', nick:'—', flag:'🇺🇸',
+    details:{
+      born:'19 აგვისტო 1982',
+      birthplace:'იუკლიდი, ოჰაიო, აშშ',
+      team:'Strong Style Fight Team (ოჰაიო)',
+      style:'კრივი (ოქროს ხელთათმანი) · ჭიდაობა (NCAA) · ნოკაუტ-ძალა',
+      nickFrom:'საჯაროდ ცნობილი მეტსახელი არ აქვს.',
+      text:'დაიბადა 1982 წლის 19 აგვისტოს ოჰაიოს ქალაქ იუკლიდში; ხორვატული წარმოშობისაა. იყო ოქროს ხელთათმანის სამოყვარულო ჩემპიონი კრივში და NCAA-ის დივიზიონის მოჭიდავე Cleveland State-ში.\n\nითვლება მძიმე წონის ისტორიის ერთ-ერთ საუკეთესოდ — ფლობს დივიზიონში ტიტულის ზედიზედ დაცვების რეკორდს (3). გაიმარჯვა ნგანუსა, კორმიესა და სხვა ვარსკვლავებთან.\n\nსრულ განაკვეთზე მუშაობს მეხანძრე-პარამედიკოსად. 2024 წლის ნოემბერში, ჯონ ჯონსთან მარცხის შემდეგ, კარიერა დაასრულა.',
+    },
+    wclass:'heavyweight', champion:false, country:'აშშ',
+    rec:{w:20,l:5,d:0}, ko:15, sub:0, dec:5, height:'193 სმ', reach:'203 სმ', age:43,
+    bio:'მძიმე წონის ისტორიის ერთ-ერთი საუკეთესო, ორგზის ჩემპიონი ტიტულის დაცვების რეკორდით. 2024 წელს ჯონსთან მარცხის შემდეგ კარიერა დაასრულა.',
+    fights:[
+      { opp:'Jon Jones',        date:'16.11.2024', result:'loss', method:'ტექნ. ნოკაუტი, 3 რაუნდი',   role:'underdog', odds:'აუტსაიდერი — სატიტულო' },
+      { opp:'Francis Ngannou',  date:'27.03.2021', result:'loss', method:'ნოკაუტი, 2 რაუნდი',         role:'favorite', odds:'ფავორიტი იყო — დაკარგა ტიტული' },
+      { opp:'Daniel Cormier',   date:'15.08.2020', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი',  role:'even',     odds:'ტიტულის დაცვა (ტრილოგია)' },
+      { opp:'Daniel Cormier',   date:'17.08.2019', result:'win',  method:'ნოკაუტი, 4 რაუნდი',         role:'underdog', odds:'დაიბრუნა ტიტული' },
+      { opp:'Francis Ngannou',  date:'20.01.2018', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი',  role:'favorite', odds:'ფავორიტი — ტიტულის დაცვა' },
+    ],
+  },
+  {
+    id:'pavlovich', name:'Sergei Pavlovich', nick:'—', flag:'🇷🇺',
+    details:{
+      born:'13 მაისი 1992',
+      birthplace:'ორლოვსკი, როსტოვის ოლქი, რუსეთი',
+      team:'Eagles MMA (მოსკოვი)',
+      style:'კრივი · უზარმაზარი მისწვდომა · ერთი დარტყმის ნოკაუტ-ძალა',
+      nickFrom:'საჯაროდ ცნობილი მეტსახელი არ აქვს.',
+      text:'დაიბადა 1992 წლის 13 მაისს როსტოვის ოლქის სოფელ ორლოვსკიში. ერთ-ერთი ყველაზე საშიში დამრტყმელია მძიმე წონაში — ფლობს UFC-ის რეკორდს ზედიზედ პირველ რაუნდში ნოკაუტებზე (6).\n\nუზარმაზარი, 213 სმ მისწვდომის წყალობით მოწინააღმდეგეებს შორიდან წვდება. ვარჯიშობს Eagles MMA-ში (მოსკოვი).\n\n2023 წლის ნოემბერში დროებითი ტიტულისთვის ტომ ასპინალს დაამარცხდა — კარიერის პირველი მნიშვნელოვანი მარცხი. რჩება მძიმე წონის ტოპ-კონტენდერად.',
+    },
+    wclass:'heavyweight', champion:false, country:'რუსეთი',
+    rec:{w:21,l:3,d:0}, ko:16, sub:0, dec:5, height:'191 სმ', reach:'213 სმ', age:34,
+    bio:'მძიმე წონის ერთ-ერთი ყველაზე საშიში ნოკაუტიორი, ცნობილი ერთი დარტყმის ძალითა და უზარმაზარი მისწვდომით. დროებითი ტიტული ასპინალს დაუთმო.',
+    fights:[
+      { opp:'Tom Aspinall',          date:'11.11.2023', result:'loss', method:'ნოკაუტი, 1 რაუნდი', role:'even',     odds:'სატიტულო — თანაბარი' },
+      { opp:'Tai Tuivasa',           date:'02.12.2023', result:'win',  method:'სუბმიშენი, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Curtis Blaydes',        date:'22.04.2023', result:'win',  method:'ნოკაუტი, 2 რაუნდი',   role:'even',     odds:'თანაბარი შანსები' },
+      { opp:'Derrick Lewis',         date:'22.07.2022', result:'win',  method:'ნოკაუტი, 1 რაუნდი',   role:'even',     odds:'თანაბარი შანსები' },
+      { opp:'Shamil Abdurakhimov',   date:'24.10.2020', result:'win',  method:'ნოკაუტი, 1 რაუნდი',   role:'favorite', odds:'ფავორიტი' },
+    ],
+  },
+  {
+    id:'sterling', name:'Aljamain Sterling', nick:'Funk Master', flag:'🇺🇸',
+    details:{
+      born:'31 ივლისი 1989',
+      birthplace:'უნიონდეილი, ნიუ-იორკი, აშშ',
+      team:'Serra-Longo Fight Team (ნიუ-იორკი)',
+      style:'ჭიდაობა (NCAA All-American) · გასაგუდი ხერხები · მაღალი ტემპი',
+      nickFrom:'„Funk Master" — მისი არაორთოდოქსული, „ფანკ"-ჭიდაობის სტილის გამო.',
+      text:'დაიბადა 1989 წლის 31 ივლისს ნიუ-იორკის ქალაქ უნიონდეილში, ჯამაიკელ ემიგრანტთა მრავალშვილიან ოჯახში. იყო NCAA-ის დივიზიონ III-ის All-American მოჭიდავე; ვარჯიშობს Serra-Longo-ში — იქვე, სადაც მერაბ დვალიშვილი.\n\nიყო ბანტამის წონის ჩემპიონი (2021–2023) და ტიტული სამჯერ დაიცვა. ისტორიაში პირველი UFC-ის ჩემპიონი, ვინც სარტყელი დისკვალიფიკაციით მოიგო (პეტრ იანის უკანონო მუხლი).\n\n2024 წელს ფედერვეიტ წონაში ავიდა. ცნობილია მაღალი ტემპით, წნეხითა და ჭიდაობრივი დომინირებით.',
+    },
+    wclass:'featherweight', champion:false, country:'აშშ',
+    rec:{w:26,l:5,d:0}, ko:3, sub:8, dec:15, height:'170 სმ', reach:'180 სმ', age:36,
+    bio:'ლეგჩაიშის წონის ყოფილი ჩემპიონი სამი დაცვით, ცნობილი არაორთოდოქსული ჭიდაობით. 2024 წელს ფედერვეიტში ავიდა.',
+    fights:[
+      { opp:'Movsar Evloev',  date:'07.12.2024', result:'loss', method:'გადაწყვეტილება, 3 რაუნდი', role:'even',     odds:'თანაბარი შანსები' },
+      { opp:'Sean O\'Malley', date:'19.08.2023', result:'loss', method:'ტექნ. ნოკაუტი, 2 რაუნდი',  role:'favorite', odds:'ფავორიტი იყო — დაკარგა ტიტული' },
+      { opp:'Henry Cejudo',   date:'06.05.2023', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი — ტიტულის დაცვა' },
+      { opp:'Petr Yan',       date:'22.10.2022', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი', role:'even',     odds:'ტიტულის გაერთიანება' },
+      { opp:'Petr Yan',       date:'06.03.2021', result:'win',  method:'დისკვალიფიკაცია, 4 რაუნდი', role:'underdog', odds:'მოიგო ტიტული (DQ)' },
     ],
   },
   {
@@ -1023,7 +1171,7 @@ const FIGHTERS = [
     },
     wclass:'lightweight', champion:true, country:'აშშ',
     rec:{w:28,l:5,d:0}, ko:21, sub:1, dec:6, height:'180 სმ', reach:'178 სმ', age:37,
-    bio:'მსუბუქი წონის ჩემპიონი, ცნობილი წარმოუდგენელი აგრესიითა და ნოკაუტებით. 2026 წლის 14 ივნისს ნოკაუტით დაამარცხა Ilia Topuria და მოიგო უდავო ჩემპიონობა.',
+    bio:'მსუბუქი წონის ჩემპიონი, ცნობილი წარმოუდგენელი აგრესიითა და ნოკაუტებით. 2026 წლის 14 ივნისს პოლიტიკამ დაადოპინგა და მოაგებინეს Ilia Topuria-სთან, რის შედეგადაც გახდა ჩემპიონი. დროებით.',
     fights:[
       { opp:'Ilia Topuria',    date:'14.06.2026', result:'win', method:'ტექნ. ნოკაუტი, 4 რაუნდი',   role:'underdog', odds:'აუტსაიდერი — მოიგო ტიტული' },
       { opp:'Paddy Pimblett',   date:'24.01.2026', result:'win', method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი — დროებითი ტიტული' },
@@ -1811,6 +1959,141 @@ const FIGHTERS = [
       text:'დაიბადა 1992 წლის 8 იანვარს თბილისში. ვარჯიში ოთხი წლის ასაკში დაიწყო; საბრძოლო ფონი — სამბო და მუაი-თაი.\n\nმზადებას შვედეთის All-Stars Gym-ში გადის, სადაც ერთ დარბაზში ვარჯიშობდა ალექსანდრ გუსტაფსონთან და ხამზათ ჩიმაევთან.\n\nმსუბუქი წონის კატეგორიაში გამოდის UFC-ში; ცნობილია მძაფრი დარტყმებით.',
     },
   },
+  {
+    id:'gsp', name:'Georges St-Pierre', nick:'Rush', aka:'GSP Georges St Pierre St-Pierre', flag:'🇨🇦',
+    wclass:'welterweight', champion:false, country:'კანადა',
+    rec:{w:26,l:2,d:0}, ko:8, sub:6, dec:12, height:'178 სმ', reach:'193 სმ', age:45,
+    bio:'UFC-ის ერთ-ერთი უდიდესი ლეგენდა: ველტერვეიტის ხანგრძლივი ჩემპიონი და მოგვიანებით შუა წონის ჩემპიონიც. ცნობილი იყო დისციპლინით, ჭიდაობის ადაპტაციითა და ბრძოლის გეგმის იდეალური შესრულებით.',
+    fights:[
+      { opp:'Michael Bisping', date:'04.11.2017', result:'win', method:'საბმიშენი, rear-naked choke, 3 რაუნდი', role:'favorite', odds:'დაბრუნების მიუხედავად ფავორიტი' },
+      { opp:'Johny Hendricks', date:'16.11.2013', result:'win', method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Nick Diaz', date:'16.03.2013', result:'win', method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Carlos Condit', date:'17.11.2012', result:'win', method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Matt Serra', date:'07.04.2007', result:'loss', method:'TKO, 1 რაუნდი', role:'favorite', odds:'დიდი ფავორიტი' },
+      { opp:'Matt Hughes', date:'18.11.2006', result:'win', method:'TKO, 2 რაუნდი', role:'underdog', odds:'ანდერდოგი ჩემპიონთან' }
+    ],
+    details:{
+      born:'19 მაისი, 1981',
+      birthplace:'Saint-Isidore, Quebec, კანადა',
+      team:'Tristar Gym / Jackson Wink MMA / Renzo Gracie Academy — მთავარი მწვრთნელი Firas Zahabi; ასევე მუშაობდა Greg Jackson-თან, John Danaher-თან და Freddie Roach-თან',
+      started:'ბავშვობაში კიოკუშინ კარატე დაიწყო თავდაცვისთვის, შემდეგ კი ჭიდაობა, ბოქსი და ბრაზილიური ჯიუ-ჯიცუ დაამატა. MMA-ში მისი მთავარი ძალა იყო სხვადასხვა სტილების ძალიან სუფთა შერევა.',
+      style:'სისტემური MMA: ძლიერი ჯები, დროული თეიქდაუნები, ზედა კონტროლი და ძალიან ზუსტი თამაშის გეგმა. GSP ხშირად არა ძალით, არამედ წესრიგით და ტემპით ამტვრევდა მეტოქეს.',
+      career:'UFC-ის ველტერვეიტის ერთ-ერთი ყველაზე დომინანტი ჩემპიონი გახდა და ტიტული მრავალჯერ დაიცვა. 2017 წელს ხანგრძლივი პაუზის შემდეგ დაბრუნდა, Michael Bisping დაამარცხა და შუა წონის ქამარიც მოიგო.',
+      personal:'კარიერის განმავლობაში ხშირად საუბრობდა დისციპლინაზე, მენტალურ წნეხზე და ბულინგის საწინააღმდეგო თემებზე. მისი იმიჯი UFC-ში ყოველთვის პროფესიონალიზმსა და სპორტულ ეთიკას უკავშირდებოდა.',
+      nickFrom:'„Rush” ხაზს უსვამდა მის სწრაფ, ფეთქებად შესვლებს და იმ ენერგიას, რომლითაც შეტევაში გადადიოდა.',
+      legacy:'ორწონიანი UFC ჩემპიონი და ბევრისთვის MMA-ის ისტორიაში ერთ-ერთი მთავარი GOAT კანდიდატი.'
+    }
+  },
+  {
+    id:'cormier', name:'Daniel Cormier', nick:'DC', aka:'DC Daniel Ryan Cormier', flag:'🇺🇸',
+    wclass:'heavyweight', champion:false, country:'აშშ',
+    rec:{w:22,l:3,d:0}, ko:10, sub:5, dec:7, height:'180 სმ', reach:'184 სმ', age:47,
+    bio:'ოლიმპიური დონის მოჭიდავე და UFC-ის ორწონიანი ჩემპიონი. Cormier ერთდროულად ფლობდა მძიმე და ნახევრად მძიმე წონის ქამრებს და კარიერის შემდეგ UFC-ის ერთ-ერთ მთავარ ანალიტიკოსადაც იქცა.',
+    fights:[
+      { opp:'Stipe Miocic', date:'15.08.2020', result:'loss', method:'გადაწყვეტილება, 5 რაუნდი', role:'underdog', odds:'მცირე ანდერდოგი ტრილოგიაში' },
+      { opp:'Stipe Miocic', date:'17.08.2019', result:'loss', method:'TKO, 4 რაუნდი', role:'favorite', odds:'ჩემპიონი და ფავორიტი' },
+      { opp:'Derrick Lewis', date:'03.11.2018', result:'win', method:'საბმიშენი, rear-naked choke, 2 რაუნდი', role:'favorite', odds:'დიდი ფავორიტი' },
+      { opp:'Stipe Miocic', date:'07.07.2018', result:'win', method:'KO, 1 რაუნდი', role:'underdog', odds:'ანდერდოგი მძიმე წონის ჩემპიონთან' },
+      { opp:'Volkan Oezdemir', date:'20.01.2018', result:'win', method:'TKO, 2 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Jon Jones', date:'29.07.2017', result:'nc', method:'უ-კონტესტი, შედეგი გაუქმდა', role:'underdog', odds:'ანდერდოგი' }
+    ],
+    details:{
+      born:'20 მარტი, 1979',
+      birthplace:'Lafayette, Louisiana, აშშ',
+      team:'American Kickboxing Academy — Javier Mendez; ვარჯიშობდა Cain Velasquez-თან, Luke Rockhold-თან, Jon Fitch-თან და Josh Koscheck-თან',
+      started:'ბრძოლაში მისი საფუძველი იყო ჭიდაობა: NCAA Division I დონე, საერთაშორისო ასპარეზი და აშშ-ის ოლიმპიური ნაკრები. MMA-ში გადასვლის შემდეგ ამ ბაზას ბოქსი და კლინჩის წნეხი დაუმატა.',
+      style:'დაბალი სიმაღლის მიუხედავად მძიმე წონაში ძალიან კარგად იყენებდა კლინჩს, თეიქდაუნებს, კედელთან კონტროლს და მოკლე დარტყმებს. მისი მთავარი იარაღი იყო რიტმის ჩაკეტვა და მეტოქის სივრცის წართმევა.',
+      career:'Strikeforce-ის გრან-პრის გამარჯვების შემდეგ UFC-ში ნახევრად მძიმე წონის ჩემპიონი გახდა, შემდეგ მძიმე წონაში ავიდა და Stipe Miocic-ს პირველ რაუნდში ნოკაუტით მოუგო. ამის შემდეგ ერთდროულად ორი ქამარი ეჭირა.',
+      personal:'Cormier ცნობილია როგორც მწვრთნელი, კომენტატორი და ანალიტიკოსი. მისი კარიერის დიდი ნაწილი American Kickboxing Academy-სთან და Javier Mendez-თან არის დაკავშირებული.',
+      nickFrom:'„DC” უბრალოდ მისი სახელისა და გვარის ინიციალებია, მაგრამ UFC-ში ეს მოკლე სახელი უკვე ლეგენდის ბრენდად იქცა.',
+      legacy:'UFC-ის ორწონიანი ჩემპიონი, ერთ-ერთი საუკეთესო მოჭიდავე MMA-ის ისტორიაში და მძიმე/ნახევრად მძიმე წონის ეპოქის ცენტრალური ფიგურა.'
+    }
+  },
+  {
+    id:'shara', name:'Sharabutdin Magomedov', nick:'Shara Bullet', aka:'Shara Bullet Shara Magomedov Sharaputdin Magomedov', flag:'🇷🇺',
+    wclass:'middleweight', champion:false, country:'რუსეთი (დაღესტანი)',
+    rec:{w:16,l:1,d:0}, ko:12, sub:0, dec:4, height:'188 სმ', reach:'185 სმ', age:32,
+    bio:'დაღესტნელი სტრაიკერი, რომელიც UFC-ში მკვეთრი დარტყმებით, არასტანდარტული კუთხეებით და სანახაობრივი ნოკაუტებით გამოჩნდა. მისი ბაზა უფრო დარტყმით სპორტებშია, ვიდრე კლასიკურ დაღესტნურ ჭიდაობაში.',
+    fights:[
+      { opp:'Marc-Andre Barriault', date:'26.07.2025', result:'win', method:'გადაწყვეტილება, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Michael Page', date:'01.02.2025', result:'loss', method:'გადაწყვეტილება, 3 რაუნდი', role:'underdog', odds:'ანდერდოგი გამოცდილი სტრაიკერის წინააღმდეგ' },
+      { opp:'Armen Petrosyan', date:'26.10.2024', result:'win', method:'KO, ორმაგი spinning backfist, 2 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Michal Oleksiejczuk', date:'03.08.2024', result:'win', method:'გადაწყვეტილება, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Antonio Trocoli', date:'22.06.2024', result:'win', method:'TKO, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Bruno Silva', date:'21.10.2023', result:'win', method:'გადაწყვეტილება, 3 რაუნდი', role:'favorite', odds:'ფავორიტი UFC დებიუტში' }
+    ],
+    details:{
+      born:'16 მაისი, 1994',
+      birthplace:'Makhachkala, Dagestan, რუსეთი',
+      team:'GOR MMA — დაღესტნური ბაზა; დარტყმითი ფონი მუაი-ტაიში, კიკბოქსინგსა და ლეთვეიში',
+      started:'პირველად ფეხბურთით იყო დაკავებული, შემდეგ კი დარტყმით სპორტებში გადავიდა. მისი გზის მთავარი ნაწილი მუაი-ტაიმ, კიკბოქსინგმა და ლეთვეიმ ჩამოაყალიბა.',
+      style:'მაღალი, დარტყმებზე ორიენტირებული middleweight: უყვარს კუთხეების შეცვლა, spinning შეტევები, მუხლები და მოულოდნელი კომბინაციები. გრეპლინგში ნაკლებად გამოცდილია, ამიტომ მისთვის დისტანციის შენარჩუნება განსაკუთრებით მნიშვნელოვანია.',
+      career:'UFC-ში 2023 წელს შევიდა და ზედიზედ რამდენიმე გამარჯვებით სწრაფად გახდა თვალსაჩინო სახელი. Armen Petrosyan-ის წინააღმდეგ ორმაგი spinning backfist-ით ნოკაუტმა მისი ჰაილაით-რეპუტაცია კიდევ უფრო გააძლიერა. Michael Page-თან 2025 წელს პირველი პროფესიონალური მარცხი მიიღო, შემდეგ Barriault-ს გადაწყვეტილებით მოუგო.',
+      personal:'დაღესტნური MMA სკოლისგან განსხვავებით, Shara უფრო სტრაიკერის პროფილით გამოირჩევა. სწორედ ეს განსხვავებულობა ხდის მას საინტერესო ფიგურად შუა წონაში.',
+      nickFrom:'„Shara” მისი სახელის შემოკლებული ფორმაა, „Bullet” კი სწრაფ, მკვეთრ დარტყმებს და ფეთქებად სტილს უსვამს ხაზს.',
+      legacy:'ჯერ ლეგენდის სტატუსი არ აქვს, მაგრამ UFC-ის ერთ-ერთი ყველაზე სანახაობრივი თანამედროვე სტრაიკერია და მისი კარიერა ჯერ კიდევ ვითარდება.'
+    }
+  },
+  {
+    id:'miller', name:'Jim Miller', nick:'A-10', flag:'🇺🇸',
+    wclass:'lightweight', champion:false, country:'აშშ',
+    rec:{w:39,l:19,d:0}, ko:7, sub:22, dec:10, height:'173 სმ', reach:'180 სმ', age:42,
+    bio:'UFC-ის გამძლეობის სიმბოლო: ყველაზე მეტი ბრძოლა და ყველაზე მეტი გამარჯვება ორგანიზაციის ისტორიაში. 2026 წელს Jared Gordon-ს გილიოტინით მოუგო და UFC-ში გამარჯვებების რეკორდი 28-მდე გაზარდა.',
+    fights:[
+      { opp:'Jared Gordon', date:'09.05.2026', result:'win', method:'სუბმიშენი, გილიოტინა, 1 რაუნდი', role:'favorite', odds:'ფავორიტი — UFC რეკორდის გაფართოება' },
+      { opp:'Bobby Green', date:'13.04.2024', result:'loss', method:'გადაწყვეტილება, 3 რაუნდი', role:'underdog', odds:'აუტსაიდერი' },
+      { opp:'Gabriel Benitez', date:'13.01.2024', result:'win', method:'სუბმიშენი, face crank, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Jesse Butler', date:'03.06.2023', result:'win', method:'ნოკაუტი, 1 რაუნდი', role:'favorite', odds:'ფავორიტი' }
+    ],
+    details:{
+      born:'30 აგვისტო, 1983',
+      birthplace:'Sparta Township, New Jersey, აშშ',
+      team:'Miller Brothers MMA; ადრე AMA Fight Club — BJJ შავი ქამარი Jamie Cruz-ის ხაზით',
+      style:'ჯიუ-ჯიცუ · გილიოტინა · NCAA ჭიდაობა · გამძლეობა',
+      nickFrom:'„A-10” დაკავშირებულია A-10 Thunderbolt II-ის გამძლე, პირდაპირ საბრძოლო იმიჯთან.',
+      text:'დაიბადა ნიუ-ჯერსიში და კოლეჯში Virginia Tech-ში ჭიდაობდა. MMA-ში ძლიერი გრეპლინგით და გამძლეობით გამოირჩა.\n\nUFC-ში 2008 წლიდან იბრძვის და ორგანიზაციის ისტორიის ერთ-ერთი ყველაზე ხანგრძლივი კარიერა აქვს. რეკორდულად ბევრი UFC ბრძოლა ჩაატარა და 2026 წელს Jared Gordon-ის დამარცხებით UFC-ში ყველაზე მეტი გამარჯვების რეკორდი 28-მდე გაზარდა.\n\nMiller-ის კარიერა კარგი მაგალითია იმისა, რომ მხოლოდ ჩემპიონობა არ ქმნის ლეგენდას — ხანგრძლივობა, მზადყოფნა და მუდმივი კონკურენცია ზოგჯერ ისეთივე შთამბეჭდავია.'
+    }
+  },
+  {
+    id:'lewis', name:'Derrick Lewis', nick:'The Black Beast', flag:'🇺🇸',
+    wclass:'heavyweight', champion:false, country:'აშშ',
+    rec:{w:29,l:13,d:0}, ko:24, sub:1, dec:4, height:'191 სმ', reach:'201 სმ', age:41,
+    bio:'UFC-ის ისტორიის ყველაზე დიდი ნოკაუტიორი: ორგანიზაციაში 16 ნოკაუტით ყველა დროის ლიდერია. მძიმე წონაში ცნობილია ერთი დარტყმის ძალით და მოულოდნელი ფინიშებით.',
+    fights:[
+      { opp:'Daniel Marcos', date:'12.04.2025', result:'loss', method:'გადაწყვეტილება, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Rodrigo Nascimento', date:'11.05.2024', result:'win', method:'ნოკაუტი, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Jailton Almeida', date:'04.11.2023', result:'loss', method:'გადაწყვეტილება, 5 რაუნდი', role:'underdog', odds:'აუტსაიდერი' },
+      { opp:'Marcos Rogerio de Lima', date:'29.07.2023', result:'win', method:'TKO, 1 რაუნდი', role:'underdog', odds:'აუტსაიდერი' }
+    ],
+    details:{
+      born:'7 თებერვალი, 1985',
+      birthplace:'New Orleans, Louisiana, აშშ',
+      team:'4oz Fight Club, Houston; ადრე Silverback Fight Club',
+      style:'ბოქსი · მძიმე წონის ძალა · ერთი დარტყმის ნოკაუტი',
+      nickFrom:'„The Black Beast” მისი მძიმე, ფიზიკური და ნოკაუტებზე ორიენტირებული სტილის სიმბოლოა.',
+      text:'დაიბადა ნიუ-ორლეანში და მოგვიანებით ჰიუსტონში გადავიდა. ახალგაზრდობაში რთული გზა ჰქონდა, შემდეგ კი ბოქსით და MMA-ით დაიწყო სპორტული კარიერის აგება.\n\nLewis UFC-ში მძიმე წონის ერთ-ერთ ყველაზე ცნობად სახედ იქცა: მისი მთავარი იარაღი ყოველთვის იყო ძალა, timing და მოულოდნელი აფეთქება.\n\nUFC-ის ოფიციალურ რეკორდებში ის ყველა დროის ნოკაუტების ლიდერია — 16 UFC KO/TKO გამარჯვება.'
+    }
+  },
+  {
+    id:'rosas', name:'Raul Rosas Jr.', nick:'El Nino Problema', aka:'Raul Rosas Rosas Jr El Nino Problema', flag:'🇲🇽🇺🇸',
+    wclass:'bantamweight', champion:false, country:'მექსიკა / აშშ',
+    rec:{w:12,l:1,d:0}, ko:2, sub:6, dec:4, height:'175 სმ', reach:'170 სმ', age:21,
+    bio:'UFC-ის ისტორიაში ყველაზე ახალგაზრდა კონტრაქტის მფლობელი — კონტრაქტი 17 წლის და 11 თვის ასაკში მიიღო. ბანტამის წონაში გამოირჩევა აგრესიული გრეპლინგით და სწრაფი განვითარებით.',
+    fights:[
+      { opp:'Rob Font', date:'07.03.2026', result:'win', method:'გადაწყვეტილება, 3 რაუნდი', role:'underdog', odds:'ახალგაზრდა კონტენდერი ვეტერანის წინააღმდეგ' },
+      { opp:'Aoriqileng', date:'14.09.2024', result:'win', method:'გადაწყვეტილება, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Ricky Turcios', date:'24.02.2024', result:'win', method:'სუბმიშენი, rear-naked choke, 2 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Christian Rodriguez', date:'08.04.2023', result:'loss', method:'გადაწყვეტილება, 3 რაუნდი', role:'favorite', odds:'ფავორიტი იყო' }
+    ],
+    details:{
+      born:'8 ოქტომბერი, 2004',
+      birthplace:'Clovis, New Mexico, აშშ',
+      team:'10th Planet Jiu Jitsu; ვარჯიშობს Las Vegas-ში',
+      style:'ჯიუ-ჯიცუ · ჭიდაობა · ზურგზე გადასვლა · კონტროლი',
+      nickFrom:'„El Nino Problema” ესპანურად ნიშნავს „პრობლემა-ბავშვს” — მეტსახელი მის ძალიან ახალგაზრდა ასაკსა და საფრთხეს უსვამს ხაზს.',
+      text:'დაიბადა ნიუ-მექსიკოში, მექსიკური წარმოშობის ოჯახში. ბავშვობიდან საბრძოლო სპორტში იყო ჩართული და მოზარდობისას უკვე საერთაშორისო სამოყვარულო MMA-ზე გამოდიოდა.\n\n2022 წელს Dana White’s Contender Series-ზე გამარჯვების შემდეგ UFC-თან კონტრაქტი მიიღო 17 წლის და 11 თვის ასაკში — ეს UFC-ის ისტორიაში ყველაზე ახალგაზრდა კონტრაქტია.\n\nმისი სტილი პირველ რიგში გრეპლინგს, კონტროლს და ზურგის აღებას ეყრდნობა. ჯერ ძალიან ახალგაზრდა კარიერა აქვს, მაგრამ უკვე რამდენიმე UFC რეკორდს უკავშირდება ასაკის გამო.'
+    }
+  }
 ];
 
 /* =========================================================================
@@ -1842,6 +2125,18 @@ const PHOTOS = {
   holloway:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Blue_Angels%27_VIP_Rider_Max_Holloway_%281%29_%28cropped%29.jpg/500px-Blue_Angels%27_VIP_Rider_Max_Holloway_%281%29_%28cropped%29.jpg',
   makhachev:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Islam_Makhachev_and_Sergey_Melikov_2025_%28cropped%29.jpg/500px-Islam_Makhachev_and_Sergey_Melikov_2025_%28cropped%29.jpg',
   khabib:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Khabib_nurmagomedov.jpg/500px-Khabib_nurmagomedov.jpg',
+  poirier:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Dustin_Poirier_UFC_269.jpg/500px-Dustin_Poirier_UFC_269.jpg',
+  ferguson:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Tony_Ferguson_2025.jpg/500px-Tony_Ferguson_2025.jpg',
+  figueiredo:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Deiveson_Figueiredo_2024.jpg/500px-Deiveson_Figueiredo_2024.jpg',
+  miocic:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Stipe_Miocic_%2848086643396%29_%28cropped%29.jpg/500px-Stipe_Miocic_%2848086643396%29_%28cropped%29.jpg',
+  pavlovich:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/SergeiPavlovich2018.png/500px-SergeiPavlovich2018.png',
+  sterling:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Alijamain_Sterling_at_UFC_228.jpg/500px-Alijamain_Sterling_at_UFC_228.jpg',
+  gsp:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/2021_-_Centre_Stage_DG4_5765_%2851654942080%29_%28cropped%29.jpg/500px-2021_-_Centre_Stage_DG4_5765_%2851654942080%29_%28cropped%29.jpg',
+  cormier:'https://commons.wikimedia.org/wiki/Special:FilePath/Daniel_Cormier_promoting_EA_UFC_5.jpg?width=500',
+  shara:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Sharabutdin_Magomedov_2024.png/500px-Sharabutdin_Magomedov_2024.png',
+  miller:'https://commons.wikimedia.org/wiki/Special:FilePath/Jim.miller.2.jpg?width=500',
+  lewis:'https://commons.wikimedia.org/wiki/Special:FilePath/Derrick_Lewis_after_UFC_239.jpg?width=500',
+  rosas:'https://commons.wikimedia.org/wiki/Special:FilePath/Ra%C3%BAl_Rosas_Jr._2024.png?width=500',
   mcgregor:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Conor_McGregor_2025.jpeg/500px-Conor_McGregor_2025.jpeg',
   edwards:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Leon_Edwards_2021.png/500px-Leon_Edwards_2021.png',
   adesanya:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Israel_Adesanya_at_UFC_230.jpg/500px-Israel_Adesanya_at_UFC_230.jpg',
@@ -1924,8 +2219,8 @@ function renderGrid(){
     const byClass = state.wclass === 'favorites' ? getFavs().includes(f.id)
                   : state.wclass === 'all' ? true
                   : f.wclass === state.wclass;
-    const byQuery = !q || f.name.toLowerCase().includes(q) || f.nick.toLowerCase().includes(q)
-                  || (f.country && f.country.toLowerCase().includes(q));
+    const haystack = [f.name, f.nick, f.aka, f.country].filter(Boolean).join(' ').toLowerCase();
+    const byQuery = !q || haystack.includes(q);
     return byClass && byQuery;
   });
 
@@ -2009,6 +2304,7 @@ function openFighter(id){
 
   const statBox = (val,label) => `<div class="box"><b>${val}</b><span>${label}</span></div>`;
   const factRow = (l,v) => v ? `<div class="fact"><span>${l}</span><b>${v}</b></div>` : '';
+  const detailBody = (d) => (d.text || [d.started, d.career, d.personal, d.legacy].filter(Boolean).join('\n\n'));
 
   // показываем бои от свежих к старым (на случай дописанных исторических очных боёв)
   const dv = d => { const p = String(d).split('.'); return p.length === 3 ? +(p[2] + p[1] + p[0]) : 0; };
@@ -2065,7 +2361,7 @@ function openFighter(id){
             ${factRow('სტილი', f.details.style)}
           </div>
           ${f.details.nickFrom && f.nick !== '—' ? `<p class="nick-origin">🏷️ «${f.nick}» — ${f.details.nickFrom}</p>` : ''}
-          ${f.details.text.split('\n\n').map(p => `<p class="dbio">${p}</p>`).join('')}
+          ${detailBody(f.details).split('\n\n').filter(Boolean).map(p => `<p class="dbio">${p}</p>`).join('')}
         </div>
       ` : ''}
 
@@ -2262,7 +2558,19 @@ function renderChampions(){
     b.addEventListener('click', () => openFighter(b.dataset.id)));
 }
 
-/* рекорды базы — лидеры в цифрах (считаются из массива FIGHTERS) */
+/* records in our local database */
+function recordTile(r){
+  return `<button class="rec-tile" data-id="${r.f.id}">
+      <span class="rec-icon">${r.icon}</span>
+      <span class="rec-val">${r.val}</span>
+      <span class="rec-label">${r.label}</span>
+      <span class="rec-who">${r.f.name} ${r.f.flag}</span>
+    </button>`;
+}
+function bindRecordTiles(sel){
+  document.querySelectorAll(sel + ' .rec-tile').forEach(b =>
+    b.addEventListener('click', () => openFighter(b.dataset.id)));
+}
 function renderRecords(){
   const max = sel => FIGHTERS.reduce((a, b) => sel(b) > sel(a) ? b : a);
   const min = sel => FIGHTERS.reduce((a, b) => sel(b) < sel(a) ? b : a);
@@ -2271,23 +2579,28 @@ function renderRecords(){
   const subL = max(f => f.sub);
   const young = min(f => f.age);
   const recs = [
-    { icon:'🥊', val:koL.ko,     label:'ყველაზე მეტი ნოკაუტი',   f:koL  },
-    { icon:'🏆', val:winL.rec.w, label:'ყველაზე მეტი გამარჯვება', f:winL },
-    { icon:'🤼', val:subL.sub,   label:'ყველაზე მეტი სუბმიშენი',  f:subL },
-    { icon:'🎂', val:young.age + ' წ.', label:'უმცროსი მებრძოლი', f:young },
+    { icon:'🥊', val:koL.ko,     label:'ბაზაში ყველაზე მეტი ნოკაუტი',   f:koL  },
+    { icon:'🏆', val:winL.rec.w, label:'ბაზაში ყველაზე მეტი გამარჯვება', f:winL },
+    { icon:'🤼', val:subL.sub,   label:'ბაზაში ყველაზე მეტი სუბმიშენი',  f:subL },
+    { icon:'🎂', val:young.age + ' წ.', label:'ბაზაში უმცროსი მებრძოლი', f:young },
   ];
-  $('#records').innerHTML = recs.map(r => `
-    <button class="rec-tile" data-id="${r.f.id}">
-      <span class="rec-icon">${r.icon}</span>
-      <span class="rec-val">${r.val}</span>
-      <span class="rec-label">${r.label}</span>
-      <span class="rec-who">${r.f.name} ${r.f.flag}</span>
-    </button>`).join('');
-  document.querySelectorAll('.rec-tile').forEach(b =>
-    b.addEventListener('click', () => openFighter(b.dataset.id)));
+  $('#records').innerHTML = recs.map(recordTile).join('');
+  bindRecordTiles('#records');
 }
 
-/* сортировка карточек */
+/* real UFC all-time records */
+function renderUfcRecords(){
+  const byId = id => FIGHTERS.find(f => f.id === id);
+  const recs = [
+    { icon:'🏆', val:'28', label:'UFC-ში ყველაზე მეტი გამარჯვება', f:byId('miller') },
+    { icon:'🥊', val:'16', label:'UFC-ში ყველაზე მეტი ნოკაუტი', f:byId('lewis') },
+    { icon:'🤼', val:'17', label:'UFC-ში ყველაზე მეტი სუბმიშენი', f:byId('oliveira') },
+    { icon:'👑', val:'23 წ.', label:'ყველაზე ახალგაზრდა UFC ჩემპიონი', f:byId('jones') },
+    { icon:'📝', val:'17 წ.', label:'ყველაზე ახალგაზრდა UFC კონტრაქტი', f:byId('rosas') },
+  ].filter(r => r.f);
+  $('#ufcRecords').innerHTML = recs.map(recordTile).join('');
+  bindRecordTiles('#ufcRecords');
+}
 $('#sort').addEventListener('change', (e) => {
   state.sort = e.target.value;
   state.page = 1;            // новая сортировка — с первой страницы
@@ -2342,7 +2655,7 @@ function renderAuthArea(){
   $('#authArea').innerHTML = u
     ? `<span class="auth-hi">გამარჯობა, <b>${u.name}</b></span><button class="auth-btn" id="logoutBtn">გასვლა</button>`
     : `<button class="auth-btn primary" id="loginBtn">შესვლა</button>`;
-  const lo = $('#logoutBtn'); if (lo) lo.onclick = () => { AUTH.logout(); if (state.wclass === 'favorites') state.wclass = 'all'; renderAuthArea(); renderCats(); renderGrid(); };
+  const lo = $('#logoutBtn'); if (lo) lo.onclick = () => { AUTH.logout(); if (state.wclass === 'favorites') state.wclass = 'all'; renderAuthArea(); renderCats(); renderGrid(); renderGame(); };
   const li = $('#loginBtn'); if (li) li.onclick = openAuth;
 }
 
@@ -2373,7 +2686,7 @@ $('#authSubmit').addEventListener('click', () => {
   const name = $('#authName').value.trim(), email = $('#authEmail').value.trim(), pass = $('#authPass').value;
   const err = (authMode === 'register') ? AUTH.register(name, email, pass) : AUTH.login(email, pass);
   if (err){ $('#authErr').textContent = err; return; }
-  closeAuth(); renderAuthArea(); renderCats(); renderGrid();
+  closeAuth(); renderAuthArea(); renderCats(); renderGrid(); renderGame();
 });
 
 /* ---- мини-игра «угадай бойца»: показываем фото, угадай имя из 4 вариантов ---- */
@@ -2385,7 +2698,9 @@ function quizShuffle(arr){
   for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
   return a;
 }
-function quizBestVal(){ return +(LS.get('ufc_quiz_best') || 0); }
+// рекорд хранится отдельно для каждого аккаунта (по email); без входа — общий ключ
+function quizBestKey(){ const u = AUTH.current(); return u ? 'ufc_quiz_best_' + u.email : 'ufc_quiz_best'; }
+function quizBestVal(){ return +(LS.get(quizBestKey()) || 0); }
 
 function newQuiz(){
   quizLocked = false;
@@ -2429,7 +2744,7 @@ function quizAnswer(btn){
   const fb = $('#quizFeedback');
   if (right){
     quizScore++; quizStreak++;
-    if (quizStreak > quizBestVal()) LS.set('ufc_quiz_best', quizStreak);
+    if (quizStreak > quizBestVal()){ LS.set(quizBestKey(), quizStreak); renderBoard(); }
     fb.textContent = '✓ სწორია!'; fb.classList.add('ok');
   } else {
     quizStreak = 0;
@@ -2444,17 +2759,44 @@ function quizAnswer(btn){
 }
 $('#quizNext').addEventListener('click', newQuiz);
 
+/* игра доступна только вошедшим; гость видит приглашение войти */
+function renderGame(){
+  const u = AUTH.current();
+  $('#quizLocked').hidden = !!u;
+  $('#quizCard').hidden = !u;
+  if (u){
+    quizScore = 0; quizStreak = 0; quizRecent = [];   // у каждого входа — своя сессия
+    $('#quizScore').textContent = 0;
+    $('#quizStreak').textContent = 0;
+    $('#quizBest').textContent = quizBestVal();
+    newQuiz();
+  }
+  renderBoard();
+}
+/* топ-5 рекордов среди аккаунтов (онлайн станет общим рейтингом) */
+function renderBoard(){
+  const rows = AUTH.users()
+    .map(u => ({ name: u.name, best: +(LS.get('ufc_quiz_best_' + u.email) || 0) }))
+    .filter(r => r.best > 0)
+    .sort((a, b) => b.best - a.best)
+    .slice(0, 5);
+  if (!rows.length){ $('#quizBoard').innerHTML = ''; return; }
+  $('#quizBoard').innerHTML = '<h3 class="board-title">🏅 ტოპ-5 რეკორდი</h3><ol class="board-list">' +
+    rows.map(r => `<li><span>${r.name}</span><b>${r.best}</b></li>`).join('') + '</ol>';
+}
+$('#quizLoginBtn').addEventListener('click', openAuth);
+
 /* первый запуск */
 renderAuthArea();
 renderStatbar();
 renderChampions();
 renderRecords();
+renderUfcRecords();
 renderFotd();
 renderCats();
 renderGrid();
 initCompare();
-$('#quizBest').textContent = quizBestVal();  // показать сохранённый рекорд серии
-newQuiz();                                   // первый вопрос мини-игры
+renderGame();   // игра только для вошедших + таблица рекордов
 routeFromHash();   // если адрес содержит #id — сразу открыть карточку бойца
 </script>
 </body>
