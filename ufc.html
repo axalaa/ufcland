@@ -67,7 +67,28 @@ header{
 .nav-links{ display:flex; gap:26px; }
 .nav-links a{ color:var(--muted); font-weight:500; transition:color .2s; }
 .nav-links a:hover{ color:var(--text); }
-@media(max-width:640px){ .nav-links{ display:none; } }
+/* кнопка-бургер: на широком экране не нужна — там ссылки и так видны */
+.burger{
+  display:none; width:40px; height:40px; flex:none; cursor:pointer;
+  align-items:center; justify-content:center;
+  background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  color:var(--text); font-size:18px; font-family:inherit; line-height:1;
+}
+.burger:hover{ border-color:var(--gold); }
+/* ---- телефон: ссылки прячем в выпадающее меню под шапкой ---- */
+@media(max-width:640px){
+  .nav-links{
+    display:none;                      /* закрыто по умолчанию */
+    position:absolute; left:0; right:0; top:66px;   /* 66px — высота шапки */
+    flex-direction:column; gap:0; padding:6px 0;
+    background:var(--bg-2); border-bottom:1px solid var(--line);
+  }
+  .nav-links.open{ display:flex; }     /* класс вешает JS по нажатию бургера */
+  .nav-links a{ padding:14px 20px; border-top:1px solid var(--line); }
+  .nav-links a:first-child{ border-top:none; }
+  .burger{ display:flex; }
+  .auth-area{ margin-left:auto; }      /* прижимаем вход и бургер вправо */
+}
 
 /* ---------- ГЕРОЙ + ПОИСК + МЕСТО ПОД ВИДЕО ---------- */
 .hero{ position:relative; overflow:hidden; border-bottom:1px solid var(--line); }
@@ -195,7 +216,20 @@ section.fighters{ padding:48px 0 70px; }
 }
 /* фото лежит поверх инициалов; нет файла → onerror убирает <img> и видны инициалы */
 .card .photo .ph-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; object-position:center; background:linear-gradient(135deg,var(--red-deep),#2a1812); z-index:1; }
-.card .photo .flag{ position:absolute; top:12px; left:12px; font-size:22px; z-index:2; }
+.card .photo .flag{ position:absolute; top:12px; left:12px; z-index:2; display:flex; gap:3px; }
+.card .photo .flag .flag-icon{ width:26px; height:17px; }
+/* флаг-картинка вместо эмодзи (см. SVG-спрайт в начале <body> и flagIcons()).
+   тонкая светлая рамка — чтобы белые флаги не сливались с тёмным фоном */
+.flag-icon{
+  display:inline-block; width:21px; height:14px; border-radius:2px;
+  vertical-align:-2px; box-shadow:0 0 0 1px rgba(255,255,255,.22);
+}
+.flag-icon + .flag-icon{ margin-left:3px; }
+/* запасной вариант: страны нет в спрайте — показываем код («GE») аккуратной плашкой */
+.flag-code{
+  display:inline-block; font-size:10px; font-weight:700; letter-spacing:.4px;
+  padding:1px 4px; border-radius:4px; background:rgba(255,255,255,.14); vertical-align:2px;
+}
 .card .photo .champ{
   position:absolute; top:12px; right:12px; background:var(--gold); color:#1a120c;
   font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; z-index:2;
@@ -397,10 +431,39 @@ section.fighters{ padding:48px 0 70px; }
 .fight .info{ flex:1; min-width:0; }
 .fight .info .opp{ font-weight:700; }
 .fight .info .det{ color:var(--muted); font-size:13px; }
+/* соперник, который тоже есть у нас в базе, — кликабелен и открывает его карточку.
+   пунктир снизу намекает «сюда можно нажать», не крича как обычная ссылка */
+.opp-link{
+  font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer;
+  border-bottom:1px dashed rgba(233,185,73,.55);
+}
+.opp-link:hover, .opp-link:focus-visible{ color:var(--gold-soft); border-bottom-color:var(--gold-soft); }
 .role{ font-size:12px; padding:4px 11px; border-radius:999px; white-space:nowrap; font-weight:700; }
 .role.favorite{ background:rgba(233,185,73,.16); color:var(--gold-soft); }
 .role.underdog{ background:rgba(232,59,59,.16); color:#f1948a; }
 .role.even{ background:rgba(176,154,134,.14); color:var(--muted); }
+
+/* ---------- P4P РЕЙТИНГ ----------
+   Список мест 1–15: номер + мини-фото + имя. Плитки в сетку, чтобы на широком
+   экране шли в 2–3 колонки, а на телефоне — в одну. */
+.p4p{ list-style:none; display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:10px; }
+.p4p-row{
+  display:flex; align-items:center; gap:12px; padding:10px 14px; cursor:pointer;
+  background:var(--surface); border:1px solid var(--line); border-radius:14px;
+  transition:border-color .2s ease, transform .2s ease, background .2s ease;
+}
+.p4p-row:hover{ border-color:var(--gold); background:var(--surface-2); transform:translateY(-2px); }
+.p4p-num{ width:24px; flex:none; text-align:center; font-weight:900; font-size:16px; color:var(--muted); }
+.p4p-num.top{ color:var(--gold); }   /* первая тройка — золотом */
+.p4p-photo{
+  width:42px; height:42px; flex:none; border-radius:50%; overflow:hidden; position:relative;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px;
+  background:linear-gradient(135deg,var(--red-deep),#2a1812); color:var(--gold-soft);
+}
+.p4p-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .5s ease; }
+.p4p-info{ min-width:0; display:flex; flex-direction:column; gap:2px; }
+.p4p-name{ font-weight:700; font-size:14px; }
+.p4p-meta{ color:var(--muted); font-size:12px; }
 
 /* ---------- ПОДВАЛ ---------- */
 footer{ border-top:1px solid var(--line); padding:34px 0; color:var(--muted); font-size:13px; text-align:center; }
@@ -614,6 +677,39 @@ section.fotd{ padding:28px 0 4px; }
 </head>
 <body>
 
+<!-- ======================= ФЛАГИ (SVG-спрайт) =======================
+     Зачем: в данных бойцов страна записана эмодзи-флагом ('🇬🇪'), но Windows
+     их не рисует — вместо флага показывает буквы кода («GE», а у Топурии
+     с двумя флагами вообще «GEES»). Поэтому храним данные как есть, а при
+     отрисовке подменяем эмодзи на свою картинку отсюда (см. flagIcons()).
+     Флаги нарочно упрощены: на 20 px звёзды и гербы всё равно не видно,
+     читается только раскладка цветов. Добавить страну = дописать <symbol>
+     с id="fl-XX" (XX — код страны) и код в FLAG_CODES в скрипте. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="fl-GE" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><path d="M12.6 0h4.8v20h-4.8z" fill="#e8112d"/><path d="M0 7.6h30v4.8H0z" fill="#e8112d"/><g fill="#e8112d"><path d="M5.55 1.7h1.5v1.35h1.35v1.5H7.05v1.35h-1.5V4.55H4.2v-1.5h1.35z"/><path d="M22.95 1.7h1.5v1.35h1.35v1.5H24.45v1.35h-1.5V4.55H21.6v-1.5h1.35z"/><path d="M5.55 14.1h1.5v1.35h1.35v1.5H7.05v1.35h-1.5v-1.35H4.2v-1.5h1.35z"/><path d="M22.95 14.1h1.5v1.35h1.35v1.5h-1.35v1.35h-1.5v-1.35H21.6v-1.5h1.35z"/></g></symbol>
+  <symbol id="fl-US" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><g fill="#b31942"><rect width="30" height="1.54"/><rect y="3.08" width="30" height="1.54"/><rect y="6.15" width="30" height="1.54"/><rect y="9.23" width="30" height="1.54"/><rect y="12.31" width="30" height="1.54"/><rect y="15.38" width="30" height="1.54"/><rect y="18.46" width="30" height="1.54"/></g><rect width="12" height="10.77" fill="#0a3161"/><g fill="#fff"><circle cx="2.6" cy="2.4" r="0.55"/><circle cx="6" cy="2.4" r="0.55"/><circle cx="9.4" cy="2.4" r="0.55"/><circle cx="2.6" cy="5.4" r="0.55"/><circle cx="6" cy="5.4" r="0.55"/><circle cx="9.4" cy="5.4" r="0.55"/><circle cx="2.6" cy="8.4" r="0.55"/><circle cx="6" cy="8.4" r="0.55"/><circle cx="9.4" cy="8.4" r="0.55"/></g></symbol>
+  <symbol id="fl-RU" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><rect y="6.67" width="30" height="6.66" fill="#0039a6"/><rect y="13.33" width="30" height="6.67" fill="#d52b1e"/></symbol>
+  <symbol id="fl-BR" viewBox="0 0 30 20"><rect width="30" height="20" fill="#009739"/><path d="M15 2 28 10 15 18 2 10z" fill="#fedd00"/><circle cx="15" cy="10" r="4.2" fill="#012169"/><path d="M11 9.2a9 9 0 0 1 8 1.4" stroke="#fff" stroke-width="1.1" fill="none"/></symbol>
+  <symbol id="fl-GB" viewBox="0 0 30 20"><rect width="30" height="20" fill="#012169"/><path d="M0 0 30 20M30 0 0 20" stroke="#fff" stroke-width="4"/><path d="M0 0 30 20M30 0 0 20" stroke="#c8102e" stroke-width="2"/><path d="M15 0v20M0 10h30" stroke="#fff" stroke-width="6.6"/><path d="M15 0v20M0 10h30" stroke="#c8102e" stroke-width="4"/></symbol>
+  <symbol id="fl-AU" viewBox="0 0 30 20"><rect width="30" height="20" fill="#012169"/><use href="#fl-GB" width="15" height="10"/><g fill="#fff"><circle cx="7.5" cy="15.4" r="1.5"/><circle cx="22.5" cy="4" r="0.9"/><circle cx="26" cy="8.4" r="0.9"/><circle cx="22.2" cy="12.6" r="0.9"/><circle cx="24.6" cy="16.4" r="0.75"/><circle cx="20.2" cy="8.8" r="0.6"/></g></symbol>
+  <symbol id="fl-NZ" viewBox="0 0 30 20"><rect width="30" height="20" fill="#012169"/><use href="#fl-GB" width="15" height="10"/><g fill="#c8102e" stroke="#fff" stroke-width="0.5"><circle cx="24" cy="5" r="1.1"/><circle cx="27" cy="10" r="1.1"/><circle cx="23.6" cy="15.2" r="1.1"/><circle cx="20.8" cy="10.2" r="0.9"/></g></symbol>
+  <symbol id="fl-MX" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><rect width="10" height="20" fill="#006847"/><rect x="20" width="10" height="20" fill="#ce1126"/><circle cx="15" cy="10" r="1.9" fill="#8c6239"/></symbol>
+  <symbol id="fl-NG" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><rect width="10" height="20" fill="#008751"/><rect x="20" width="10" height="20" fill="#008751"/></symbol>
+  <symbol id="fl-FR" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><rect width="10" height="20" fill="#002395"/><rect x="20" width="10" height="20" fill="#ed2939"/></symbol>
+  <symbol id="fl-ES" viewBox="0 0 30 20"><rect width="30" height="20" fill="#aa151b"/><rect y="5" width="30" height="10" fill="#f1bf00"/></symbol>
+  <symbol id="fl-IE" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><rect width="10" height="20" fill="#169b62"/><rect x="20" width="10" height="20" fill="#ff883e"/></symbol>
+  <symbol id="fl-AM" viewBox="0 0 30 20"><rect width="30" height="20" fill="#d90012"/><rect y="6.67" width="30" height="6.66" fill="#0033a0"/><rect y="13.33" width="30" height="6.67" fill="#f2a800"/></symbol>
+  <symbol id="fl-KZ" viewBox="0 0 30 20"><rect width="30" height="20" fill="#00afca"/><circle cx="16" cy="9" r="3.1" fill="#fec50c"/><rect x="1.4" y="2" width="1.5" height="16" fill="#fec50c"/></symbol>
+  <symbol id="fl-EC" viewBox="0 0 30 20"><rect width="30" height="20" fill="#ffdd00"/><rect y="10" width="30" height="5" fill="#0033a0"/><rect y="15" width="30" height="5" fill="#ef3340"/></symbol>
+  <symbol id="fl-AE" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><rect x="7.5" width="22.5" height="6.67" fill="#00732f"/><rect x="7.5" y="13.33" width="22.5" height="6.67" fill="#000"/><rect width="7.5" height="20" fill="#ff0000"/></symbol>
+  <symbol id="fl-ZA" viewBox="0 0 30 20"><rect width="30" height="20" fill="#e03c31"/><rect y="10" width="30" height="10" fill="#001489"/><path d="M0 2 11 10 0 18M11 10h19" stroke="#fff" stroke-width="7" fill="none"/><path d="M0 3.4 9.6 10 0 16.6M9.6 10H30" stroke="#007a4d" stroke-width="4" fill="none"/><path d="M0 0.6 12.4 10 0 19.4z" fill="#ffb81c"/><path d="M0 3.6 8.2 10 0 16.4z" fill="#000"/></symbol>
+  <symbol id="fl-CZ" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><rect y="10" width="30" height="10" fill="#d7141a"/><path d="M0 0 13 10 0 20z" fill="#11457e"/></symbol>
+  <symbol id="fl-CN" viewBox="0 0 30 20"><rect width="30" height="20" fill="#de2910"/><polygon fill="#ffde00" transform="translate(7 5.6) scale(1.15)" points="0,-3 0.674,-0.927 2.853,-0.927 1.09,0.354 1.763,2.427 0,1.146 -1.763,2.427 -1.09,0.354 -2.853,-0.927 -0.674,-0.927"/><g fill="#ffde00"><circle cx="13" cy="2.4" r="0.7"/><circle cx="15.4" cy="5" r="0.7"/><circle cx="15.4" cy="8.2" r="0.7"/><circle cx="13" cy="10.8" r="0.7"/></g></symbol>
+  <symbol id="fl-MM" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fecb00"/><rect y="6.67" width="30" height="6.66" fill="#34b233"/><rect y="13.33" width="30" height="6.67" fill="#ea2839"/><polygon fill="#fff" transform="translate(15 10) scale(1.6)" points="0,-3 0.674,-0.927 2.853,-0.927 1.09,0.354 1.763,2.427 0,1.146 -1.763,2.427 -1.09,0.354 -2.853,-0.927 -0.674,-0.927"/></symbol>
+  <symbol id="fl-AO" viewBox="0 0 30 20"><rect width="30" height="20" fill="#cc092f"/><rect y="10" width="30" height="10" fill="#000"/><circle cx="15" cy="10" r="3" fill="none" stroke="#ffcb00" stroke-width="1.1"/><polygon fill="#ffcb00" transform="translate(15 10) scale(0.75)" points="0,-3 0.674,-0.927 2.853,-0.927 1.09,0.354 1.763,2.427 0,1.146 -1.763,2.427 -1.09,0.354 -2.853,-0.927 -0.674,-0.927"/></symbol>
+  <symbol id="fl-CA" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><rect width="7.5" height="20" fill="#d80621"/><rect x="22.5" width="7.5" height="20" fill="#d80621"/><path fill="#d80621" transform="translate(9 4) scale(0.12)" d="M50 4 54.5 22.5 68 17 64 32 82 28 76 42 96 44 80 56 88 70 68 66 66 78 54 66 56 96 50 96 44 96 46 66 34 78 32 66 12 70 20 56 4 44 24 42 18 28 36 32 32 17 45.5 22.5z"/></symbol>
+</svg>
+
 <!-- ======================= ШАПКА ======================= -->
 <header>
   <div class="wrap nav">
@@ -621,13 +717,15 @@ section.fotd{ padding:28px 0 4px; }
       <span class="mark">UFC</span>
       <span><small>მებრძოლთა ბაზა</small></span>
     </div>
-    <nav class="nav-links">
+    <!-- ссылки на игру тут намеренно нет: квиз показывается только после входа -->
+    <nav class="nav-links" id="navLinks">
       <a href="#hero">მთავარი</a>
       <a href="#fighters">მებრძოლები</a>
       <a href="#stats">სტატისტიკა</a>
-      <a href="#game">თამაში</a>
     </nav>
     <div class="auth-area" id="authArea"><!-- вход/профиль подставит JS --></div>
+    <!-- кнопка меню: видна только на телефоне (см. @media в стилях) -->
+    <button class="burger" id="burger" type="button" aria-label="მენიუ" aria-expanded="false" aria-controls="navLinks">☰</button>
   </div>
 </header>
 
@@ -702,19 +800,19 @@ section.fotd{ padding:28px 0 4px; }
   <div class="wrap">
     <div class="section-head">
       <h2>მოქმედი ჩემპიონები</h2>
-      <span class="hint">დივიზიონების მფლობელები — დააჭირე ბარათს</span>
+      <span class="hint">დივიზიონების მფლობელები</span>
     </div>
     <div class="champ-row" id="champRow"><!-- чемпионов подставит JS --></div>
 
     <div class="section-head">
-      <h2>ბაზის ლიდერები</h2>
-      <span class="hint">ჩვენს საიტზე დამატებული მებრძოლების საერთო MMA მაჩვენებლები</span>
+      <h2>P4P რეიტინგი</h2>
+      <span class="hint" id="p4pHint"><!-- подпись с датой подставит JS --></span>
     </div>
-    <div class="records" id="records"><!-- рекорды подставит JS --></div>
+    <ol class="p4p" id="p4pList"><!-- рейтинг подставит JS --></ol>
 
     <div class="section-head">
-      <h2>UFC-ის რეალური რეკორდები</h2>
-      <span class="hint">ოფიციალური UFC all-time მაჩვენებლები — არა ჩვენი ბაზის გამოთვლა</span>
+      <h2>UFC-ის რეკორდები</h2>
+      <span class="hint">ოფიციალური UFC all-time მაჩვენებლები</span>
     </div>
     <div class="records" id="ufcRecords"><!-- UFC რეკორდებს JS ჩასვამს --></div>
   </div>
@@ -725,7 +823,6 @@ section.fotd{ padding:28px 0 4px; }
   <div class="wrap">
     <div class="section-head">
       <h2>მებრძოლები</h2>
-      <span class="hint">დააჭირე ბარათს — გაიხსნება სრული პროფილი</span>
     </div>
 
     <!-- меню весовых категорий -->
@@ -734,7 +831,7 @@ section.fotd{ padding:28px 0 4px; }
     <!-- сортировка -->
     <div class="sort-row">
       <select id="sort" class="sort-select">
-        <option value="default">Default</option>
+        <option value="default">ყველა</option>
         <option value="wins">გამარჯვებების მიხედვით</option>
         <option value="ko">ნოკაუტების მიხედვით</option>
         <option value="name">სახელით (A–Z)</option>
@@ -766,7 +863,9 @@ section.fotd{ padding:28px 0 4px; }
   </div>
 </section>
 
-<!-- ======================= МИНИ-ИГРА: УГАДАЙ БОЙЦА ======================= -->
+<!-- ======================= МИНИ-ИГРА: УГАДАЙ БОЙЦА =======================
+     Ссылки на игру в шапке намеренно нет — пусть будет находкой для тех,
+     кто долистал. Гость видит приглашение войти, игру открывает вход. -->
 <section class="quiz" id="game">
   <div class="wrap">
     <div class="section-head">
@@ -817,7 +916,7 @@ section.fotd{ padding:28px 0 4px; }
 <!-- ======================= ПОДВАЛ ======================= -->
 <footer>
   <div class="wrap">
-    <p class="note">მონაცემები გადამოწმებულია 2026 წლის ივნისის მდგომარეობით (წყარო: Wikipedia / UFC). სტატისტიკა იცვლება — პერიოდულად ვაახლებთ.</p>
+    <p class="note">მონაცემები გადამოწმებულია 2026 წლის ივლისის ბოლოს მდგომარეობით (წყარო: Wikipedia / UFC). სტატისტიკა იცვლება — პერიოდულად ვაახლებთ.</p>
     <p>UFC · სასწავლო პროექტი</p>
   </div>
 </footer>
@@ -839,6 +938,16 @@ const WEIGHT_CLASSES = [
   { key:'lightheavy',   name:'Light Heavyweight',  kg:'93 კგ' },
   { key:'heavyweight',  name:'Heavyweight',        kg:'120 კგ' },
 ];
+
+/* Официальный рейтинг UFC P4P («pound for pound» — кто сильнее, если бы все
+   весили одинаково). Это НЕ расчёт по нашей базе: список составляет
+   голосованием панель журналистов UFC, и он меняется после турниров.
+   Как обновлять: просто переставь id в массиве — порядок и есть места 1–15,
+   и поправь дату в P4P_DATE (она показывается в подписи к секции).
+   Если id нет в FIGHTERS — строка молча пропускается, ничего не ломается. */
+const P4P_DATE = '28.07.2026';
+const P4P = ['makhachev','volkanovski','yan','gaethje','topuria','aspinall','strickland',
+             'merab','pereira','gane','van','chimaev','pantoja','tsarukyan','oliveira'];
 
 const FIGHTERS = [
   {
@@ -917,9 +1026,10 @@ const FIGHTERS = [
       text:'დაიბადა 1991 წლის 4 დეკემბერს ჰონოლულუში; ჰავაიური და სამოაური წარმოშობისაა, გაიზარდა ვაიანაეში. კიკბოქსინგი 15 წლისა დაიწყო და სადებიუტო სამოყვარულო ბრძოლა სულ სამი დღის ვარჯიშის შემდეგ მოიგო.\n\nიყო UFC-ის ფედერვეიტ ჩემპიონი (2017–2019, სამი დაცვა), მოგვიანებით კი „BMF" სარტყლის მფლობელი. ცნობილია დარტყმის უდიდესი მოცულობითა და გასაოცარი ნიკაპით. სამჯერ წააგო ვოლკანოვსკისთან და ერთხელ — თოფურიასთან (2024).\n\n2026 წლის მარტში „BMF" ტიტული ოლივეირას დაუთმო. რთული ბავშვობა ჰქონდა; დღეს ცოლთან, ალესა კიზონთან ცხოვრობს და ჰყავს ვაჟი.',
     },
     wclass:'featherweight', champion:false, country:'აშშ (ჰავაი)',
-    rec:{w:27,l:9,d:0}, ko:12, sub:2, dec:13, height:'180 სმ', reach:'175 სმ', age:34,
-    bio:'ლეგენდარული გამძლეობისა და დარტყმის სიხშირის მებრძოლი, ყოფილი ფედერვეიტ ჩემპიონი და „BMF“ სარტყლის მფლობელი. „BMF“ ტიტული 2026 წლის მარტში ოლივეირას დაუთმო.',
+    rec:{w:28,l:9,d:0}, ko:13, sub:2, dec:13, height:'180 სმ', reach:'175 სმ', age:34,
+    bio:'ლეგენდარული გამძლეობისა და დარტყმის სიხშირის მებრძოლი, ყოფილი ფედერვეიტ ჩემპიონი და „BMF“ სარტყლის მფლობელი. „BMF“ ტიტული 2026 წლის მარტში ოლივეირას დაუთმო, ივლისში კი ველტერვეიტში დებიუტი მაკგრეგორზე გამარჯვებით აღნიშნა.',
     fights:[
+      { opp:'Conor McGregor',    date:'11.07.2026', result:'win',  method:'ტექნ. ნოკაუტი (მუხლის ტრავმა), 1 რაუნდი', role:'favorite', odds:'ფავორიტი — დებიუტი ველტერვეიტში' },
       { opp:'Charles Oliveira',  date:'07.03.2026', result:'loss', method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი იყო — „BMF“ ტიტული' },
       { opp:'Dustin Poirier',    date:'19.07.2025', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი' },
       { opp:'Ilia Topuria',    date:'26.10.2024', result:'loss', method:'ნოკაუტი, 3 რაუნდი',       role:'underdog', odds:'აუტსაიდერი' },
@@ -982,9 +1092,10 @@ const FIGHTERS = [
       text:'დაიბადა 1988 წლის 14 ივლისს დუბლინში. 12 წლისა კრივი დაიწყო კრამლინის კლუბში — თავდაცვისა და თავდაჯერების მისაღებად. სანტექნიკოსად გადამზადების შემდეგ მთლიანად MMA-ს მიჰყვა; 2008 წლიდან ვარჯიშობს SBG Ireland-ში, ჯონ კავანასთან.\n\nგახდა UFC-ის ისტორიაში პირველი მებრძოლი, ვინც ერთდროულად ფლობდა ტიტულს ორ წონაში — ფედერვეიტი (ალდოს 13-წამიანი ნოკაუტი, 2015) და მსუბუქი წონა (2016).\n\nბიზნესში — 2018 წელს გამოუშვა ვისკი „Proper No. Twelve" და წილი 2021-ში დიდ ფასად გაყიდა. დე დევლინთან ერთად ჰყავს ოთხი შვილი; დაქორწინდნენ 2025 წელს.',
     },
     wclass:'lightweight', champion:false, country:'ირლანდია',
-    rec:{w:22,l:6,d:0}, ko:19, sub:1, dec:2, height:'175 სმ', reach:'188 სმ', age:37,
-    bio:'UFC-ის ისტორიის ერთ-ერთი ყველაზე ცნობილი ვარსკვლავი, ერთ დროს ორ კატეგორიაში ერთდროულად ჩემპიონი. 2021 წლის შემდეგ არ უბრძოლია; დაბრუნება იგეგმება 2026 წლის ივლისში მაქს ჰოლოუესთან.',
+    rec:{w:22,l:7,d:0}, ko:19, sub:1, dec:2, height:'175 სმ', reach:'188 სმ', age:37,
+    bio:'UFC-ის ისტორიის ერთ-ერთი ყველაზე ცნობილი ვარსკვლავი, ერთ დროს ორ კატეგორიაში ერთდროულად ჩემპიონი. 2026 წლის ივლისში ხუთწლიანი პაუზის შემდეგ დაბრუნდა, მაგრამ ჰოლოუესთან პირველივე რაუნდში მუხლის ტრავმის გამო წააგო.',
     fights:[
+      { opp:'Max Holloway',           date:'11.07.2026', result:'loss', method:'ტექნ. ნოკაუტი (მუხლის ტრავმა), 1 რაუნდი', role:'underdog', odds:'აუტსაიდერი — დაბრუნება 5 წლის შემდეგ' },
       { opp:'Dustin Poirier',         date:'10.07.2021', result:'loss', method:'ტექნ. ნოკაუტი, 1 რაუნდი', role:'favorite', odds:'ფავორიტი იყო' },
       { opp:'Dustin Poirier',         date:'24.01.2021', result:'loss', method:'ტექნ. ნოკაუტი, 2 რაუნდი', role:'favorite', odds:'ფავორიტი იყო' },
       { opp:'Donald Cerrone',        date:'18.01.2020', result:'win',  method:'ტექნ. ნოკაუტი, 40 წამი',  role:'favorite', odds:'ფავორიტი' },
@@ -1277,9 +1388,10 @@ const FIGHTERS = [
       text:'დაიბადა 1995 წლის 3 იანვარს ლივერპულში. 15 წლისამ MMA დაიწყო, მას შემდეგ, რაც UFC 103-ზე ფრანკლინ-ბელფორის ბრძოლამ შთააგონა; დღემდე ვარჯიშობს Next Generation MMA-ში.\n\nპროფესიონალი 2012 წელს გახდა; იყო Cage Warriors-ის ფედერვეიტ ჩემპიონი, 2021-ში კი UFC-ში გადავიდა. ცნობილია ქარიზმით, წონის მკვეთრი რყევებითა და გულშემატკივართა სიყვარულით.\n\n2022 წელს დააარსა ფონდი მამაკაცთა ფსიქიკური ჯანმრთელობისა და ბავშვთა შიმშილის წინააღმდეგ. ლივერპულის გულშემატკივარია; დაოჯახებულია.',
     },
     wclass:'lightweight', champion:false, country:'დიდი ბრიტანეთი',
-    rec:{w:23,l:4,d:0}, ko:7, sub:10, dec:6, height:'178 სმ', reach:'185 სმ', age:31,
-    bio:'პოპულარული ინგლისელი მებრძოლი, ცნობილი ქარიზმითა და გასაგუდი ხერხებით. 2026 წლის იანვარში დროებითი ტიტულისთვის გეთჯის დაუთმო.',
+    rec:{w:24,l:4,d:0}, ko:7, sub:11, dec:6, height:'178 სმ', reach:'185 სმ', age:31,
+    bio:'პოპულარული ინგლისელი მებრძოლი, ცნობილი ქარიზმითა და გასაგუდი ხერხებით. 2026 წლის იანვარში დროებითი ტიტულისთვის გეთჯის დაუთმო, ივლისში კი სენ-დენისი 52 წამში დაამარცხა.',
     fights:[
+      { opp:'Benoit Saint Denis', date:'11.07.2026', result:'win',  method:'ტექნ. სუბმიშენი (პერუული ჰალსტუხი), 1 რაუნდი', role:'underdog', odds:'აუტსაიდერი — მოიგო 52 წამში' },
       { opp:'Justin Gaethje',    date:'24.01.2026', result:'loss', method:'გადაწყვეტილება, 5 რაუნდი', role:'underdog', odds:'აუტსაიდერი — დროებითი ტიტული' },
       { opp:'Michael Chandler',  date:'12.04.2025', result:'win',  method:'ტექნ. ნოკაუტი, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
       { opp:'King Green',       date:'27.07.2024', result:'win',  method:'სუბმიშენი, 1 რაუნდი',     role:'favorite', odds:'ფავორიტი' },
@@ -1392,9 +1504,10 @@ const FIGHTERS = [
       text:'დაიბადა 1987 წლის 11 მაისს ნიგერიის ქალაქ აუჩიში; მამა ნიგერიის არმიის მაიორი იყო, დედა — მასწავლებელი. 8 წლისა ოჯახი აშშ-ში, ტეხასში გადავიდა.\n\nნებრასკა-კირნის უნივერსიტეტში გახდა NCAA-ის II დივიზიონის ეროვნული ჩემპიონი ჭიდაობაში (2010). 2015 წელს მოიგო შოუ „The Ultimate Fighter" და UFC-ის კონტრაქტი აიღო.\n\n2019 წელს გახდა ველტერვეიტის ჩემპიონი და ხუთჯერ დაიცვა ტიტული — ერთ დროს P4P ლიდერი. 2022 წელს ედვარდსს დაუთმო. ცნობილია დომინანტური ჭიდაობითა და წნეხით.',
     },
     wclass:'welterweight', champion:false, country:'ნიგერია / აშშ',
-    rec:{w:21,l:4,d:0}, ko:9, sub:1, dec:11, height:'183 სმ', reach:'193 სმ', age:39,
-    bio:'ყოფილი ველტერვეიტ ჩემპიონი ხუთი წარმატებული დაცვით, ერთ დროს P4P ლიდერი. ცნობილი დომინანტური ჭიდაობითა და წნეხით.',
+    rec:{w:21,l:5,d:0}, ko:9, sub:1, dec:11, height:'183 სმ', reach:'193 სმ', age:39,
+    bio:'ყოფილი ველტერვეიტ ჩემპიონი ხუთი წარმატებული დაცვით, ერთ დროს P4P ლიდერი. ცნობილი დომინანტური ჭიდაობითა და წნეხით. 2026 წლის ივლისში შუა წონაში დიუ პლესისს დაუთმო.',
     fights:[
+      { opp:'Dricus du Plessis',   date:'18.07.2026', result:'loss', method:'გადაწყვეტილება, 5 რაუნდი', role:'underdog', odds:'აუტსაიდერი — ავიდა შუა წონაში' },
       { opp:'Joaquin Buckley',     date:'14.06.2025', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი', role:'even',     odds:'თანაბარი შანსები' },
       { opp:'Khamzat Chimaev',    date:'21.10.2023', result:'loss', method:'გადაწყვეტილება, 3 რაუნდი', role:'underdog', odds:'აუტსაიდერი' },
       { opp:'Leon Edwards',     date:'18.03.2023', result:'loss', method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი იყო' },
@@ -1451,9 +1564,10 @@ const FIGHTERS = [
       text:'დაიბადა 1994 წლის 14 იანვარს ქალაქ ველკომში (სამხრეთ აფრიკა); აფრიკანერია, საუბრობს ინგლისურად და აფრიკაანსზე. ხუთი წლისა ჯუდო დაიწყო, 12 წლისა — ჭიდაობა, 14 წლისა — კიკბოქსინგი. 2012 წელს WAKO-ის მსოფლიო ჩემპიონატზე ოქრო მოიპოვა.\n\nვარჯიშობს Team CIT-ში პრეტორიაში, მორნე ვისერთან. 2024 წლის იანვარში სტრიკლენდი დაამარცხა და გახდა პირველი სამხრეთ აფრიკელი UFC-ის ჩემპიონი.\n\nტიტული ორჯერ დაიცვა — ჯერ ადესანია სუბმიშენით დაამარცხა, შემდეგ კი ისევ სტრიკლენდი. 2025 წლის აგვისტოში სარტყელი ჩიმაევს დაუთმო. ცნობილია არაორდინარული, დაუღალავი სტილით.',
     },
     wclass:'middleweight', champion:false, country:'სამხრეთ აფრიკა',
-    rec:{w:23,l:3,d:0}, ko:9, sub:11, dec:3, height:'183 სმ', reach:'193 სმ', age:32,
-    bio:'ყოფილი შუა წონის ჩემპიონი ორი წარმატებული დაცვით, ცნობილი არაორდინარული, დაუღალავი სტილით. ტიტული ჩიმაევს დაუთმო.',
+    rec:{w:24,l:3,d:0}, ko:9, sub:11, dec:4, height:'183 სმ', reach:'193 სმ', age:32,
+    bio:'ყოფილი შუა წონის ჩემპიონი ორი წარმატებული დაცვით, ცნობილი არაორდინარული, დაუღალავი სტილით. ტიტული ჩიმაევს დაუთმო, 2026 წლის ივლისში კი უსმანზე გამარჯვებით დაბრუნდა გამარჯვებების გზაზე.',
     fights:[
+      { opp:'Kamaru Usman',        date:'18.07.2026', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი' },
       { opp:'Khamzat Chimaev',     date:'16.08.2025', result:'loss', method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი იყო — დაკარგა ტიტული' },
       { opp:'Sean Strickland',     date:'09.02.2025', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი', role:'favorite', odds:'ფავორიტი — ტიტულის დაცვა' },
       { opp:'Israel Adesanya',    date:'18.08.2024', result:'win',  method:'სუბმიშენი, 4 რაუნდი',     role:'underdog', odds:'აუტსაიდერი — მოიგო ტიტული' },
@@ -1488,10 +1602,11 @@ const FIGHTERS = [
       nickFrom:'„The Reaper" (მკის მომკელი) — ცნობილია აგრეთვე როგორც „Bobby Knuckles".',
       text:'დაიბადა 1990 წლის 20 დეკემბერს ოკლენდთან, ერთი თვისა კი ოჯახი სიდნეიში (ავსტრალია) გადასახლდა. დედა სამოური და მაორი წარმოშობისაა. შვიდი წლისა გოჯუ-რიუ კარატე დაიწყო (შავი ქამარი), შემდეგ აითვისა ჰაპკიდო, ჯიუ-ჯიცუ და თავისუფალი ჭიდაობა.\n\n2012 წელს მოიგო შოუ „The Ultimate Fighter: The Smashes". 2017 წელს გახდა შუა წონის ჩემპიონი და ეპოქის ერთ-ერთ ყველაზე სტაბილურ მებრძოლად იქცა.\n\nტიტული ადესანიას დაუთმო (2019), რევანშიც (2022) წააგო. წარმოადგენს ავსტრალიასაც და ახალ ზელანდიასაც. დაოჯახებულია, ხუთი შვილი ჰყავს.',
     },
-    wclass:'middleweight', champion:false, country:'ავსტრალია',
-    rec:{w:26,l:9,d:0}, ko:10, sub:5, dec:11, height:'183 სმ', reach:'187 სმ', age:35,
-    bio:'ყოფილი შუა წონის ჩემპიონი, ეპოქის ერთ-ერთი ყველაზე სტაბილური მებრძოლი. ბოლო პერიოდში ორი მარცხი განიცადა.',
+    wclass:'lightheavy', champion:false, country:'ავსტრალია',
+    rec:{w:27,l:9,d:0}, ko:11, sub:5, dec:11, height:'183 სმ', reach:'187 სმ', age:35,
+    bio:'ყოფილი შუა წონის ჩემპიონი, ეპოქის ერთ-ერთი ყველაზე სტაბილური მებრძოლი. 2026 წლის ივლისში ნახევრად მძიმე წონაში გადავიდა და დებიუტი კრილოვზე გამარჯვებით აღნიშნა.',
     fights:[
+      { opp:'Nikita Krylov',       date:'11.07.2026', result:'win',  method:'ტექნ. ნოკაუტი, 3 რაუნდი', role:'even',     odds:'დებიუტი ნახევრად მძიმე წონაში' },
       { opp:'Reinier de Ridder',   date:'26.07.2025', result:'loss', method:'გადაწყვეტილება (სპლიტი)', role:'even',     odds:'თანაბარი შანსები' },
       { opp:'Khamzat Chimaev',     date:'26.10.2024', result:'loss', method:'სუბმიშენი, 1 რაუნდი',     role:'underdog', odds:'აუტსაიდერი' },
       { opp:'Ikram Aliskerov',   date:'22.06.2024', result:'win',  method:'ნოკაუტი, 1 რაუნდი',       role:'favorite', odds:'ფავორიტი' },
@@ -1531,9 +1646,10 @@ const FIGHTERS = [
       text:'დაიბადა 1992 წლის 2 ივნისს დაღესტნის სოფელ ტელეტლში; ხუთ და-ძმას შორის უფროსია. სწავლობდა დაღესტნის სახელმწიფო პედაგოგიურ უნივერსიტეტში. ბერძნულ-რომაულ ჭიდაობასა და საბრძოლო სამბოში „სპორტის ოსტატის" წოდება მოიპოვა.\n\nვარჯიშობს Fight Club Akhmat-სა და Xtreme Couture-ში. ცნობილია მკაცრი, დისციპლინირებული თამაშითა და ძლიერი ჭიდაობით.\n\n2025 წლის 8 მარტს პერეირა დაამარცხა და გახდა ნახევრად მძიმე წონის ჩემპიონი; იმავე წლის ოქტომბერში რევანშში ნოკაუტით წააგო და ტიტული დაკარგა. ღვთისმოსავი მუსლიმია; ფლობს ყავის სახლს.',
     },
     wclass:'lightheavy', champion:false, country:'რუსეთი (დაღესტანი)',
-    rec:{w:20,l:2,d:0}, ko:10, sub:0, dec:10, height:'191 სმ', reach:'191 სმ', age:34,
-    bio:'ყოფილი ნახევრად მძიმე წონის ჩემპიონი, ელიტური მოჭიდავე-დამრტყმელი. პერეირას ერთხელ მოუგო, ერთხელ კი წააგო რევანში.',
+    rec:{w:21,l:2,d:1}, ko:11, sub:0, dec:10, height:'191 სმ', reach:'191 სმ', age:34,
+    bio:'ყოფილი ნახევრად მძიმე წონის ჩემპიონი, ელიტური მოჭიდავე-დამრტყმელი. პერეირას ერთხელ მოუგო, ერთხელ კი წააგო რევანში. 2026 წლის ივლისში გუსკოვი მეხუთე რაუნდში დაანოკაუტა.',
     fights:[
+      { opp:'Bogdan Guskov',     date:'25.07.2026', result:'win',  method:'ტექნ. ნოკაუტი, 5 რაუნდი',  role:'even',     odds:'მთავარი ბრძოლა აბუ-დაბიში' },
       { opp:'Alex Pereira',      date:'04.10.2025', result:'loss', method:'ტექნ. ნოკაუტი, 1 რაუნდი',  role:'even',     odds:'რევანში — დაკარგა ტიტული' },
       { opp:'Alex Pereira',      date:'08.03.2025', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი', role:'underdog', odds:'აუტსაიდერი — მოიგო ტიტული' },
       { opp:'Aleksandar Rakic',    date:'26.10.2024', result:'win',  method:'გადაწყვეტილება, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
@@ -1786,9 +1902,10 @@ const FIGHTERS = [
       text:'დაიბადა 1992 წლის 20 აპრილს კოლორადოს ქალაქ ორორაში. ბავშვობაში ტეკვონდოთი დაიწყო, შემდეგ კიკბოქსინგზე გადავიდა, სადაც WKA-ის მსოფლიო ტიტულიც მოიგო.\n\nფლობს კოლორადოს უნივერსიტეტის ფსიქოლოგიის დიპლომს; ვარჯიშობს Forge Fight Club-ში.\n\nბანტამის წონის ერთ-ერთი ყველაზე კრეატიული დამრტყმელია. 2021 წელს დროებითი ტიტულისთვის პეტრ იანს შეებრძოლა, 2025 წელს კი სრული ტიტულისთვის — მერაბ დვალიშვილს.',
     },
     wclass:'bantamweight', champion:false, country:'აშშ',
-    rec:{w:18,l:6,d:0}, ko:8, sub:3, dec:7, height:'180 სმ', reach:'176 სმ', age:34,
+    rec:{w:18,l:7,d:0}, ko:8, sub:3, dec:7, height:'180 სმ', reach:'176 სმ', age:34,
     bio:'ბანტამის წონის ტოპ-კონტენდერი, ცნობილი კრეატიული, ზუსტი დარტყმებით.',
     fights:[
+      { opp:'Mario Bautista',      date:'11.07.2026', result:'loss', method:'გადაწყვეტილება, 3 რაუნდი', role:'even',     odds:'რევანში — თანაბარი შანსები' },
       { opp:'Merab Dvalishvili',   date:'04.10.2025', result:'loss', method:'გადაწყვეტილება, 5 რაუნდი', role:'underdog', odds:'აუტსაიდერი — სატიტულო' },
       { opp:'Deiveson Figueiredo', date:'03.05.2025', result:'win',  method:'ტექნ. ნოკაუტი, 2 რაუნდი', role:'favorite', odds:'ფავორიტი' },
       { opp:'Umar Nurmagomedov',   date:'03.08.2024', result:'loss', method:'გადაწყვეტილება, 5 რაუნდი', role:'even',     odds:'ტიტულის ელიმინატორი' },
@@ -1864,9 +1981,10 @@ const FIGHTERS = [
       text:'დაიბადა 1992 წლის 16 აგვისტოს დენვერში (კოლორადო); მექსიკურ-ამერიკულ ოჯახში გაიზარდა. 15 წლისა ჯიუ-ჯიცუ და მუაი-თაი დაიწყო, შავი ქამარი მარიო კორეასთან მოიპოვა.\n\nUFC-მდე იყო LFA-ის ფრენის წონის ჩემპიონი; პროფესიონალამდე არასრულწლოვანთა მართლმსაჯულების სისტემაში მუშაობდა. ვარჯიშობს Factory X-ში.\n\nცნობილია აგრესიული, გასაგუდი ხერხებით სავსე სტილით — გამარჯვებების უმეტესობა სუბმიშენით აქვს. ფრენის წონის ტიტულისთვის ორჯერ შეებრძოლა პანტოხას და ორჯერ წააგო.',
     },
     wclass:'flyweight', champion:false, country:'აშშ',
-    rec:{w:17,l:9,d:0}, ko:4, sub:9, dec:4, height:'175 სმ', reach:'173 სმ', age:33,
-    bio:'ფრენის წონის ტოპ-კონტენდერი, ცნობილი ექსცენტრიული, რისკიანი სტილითა და გასაგუდი ხერხებით.',
+    rec:{w:18,l:9,d:0}, ko:4, sub:10, dec:4, height:'175 სმ', reach:'173 სმ', age:33,
+    bio:'ფრენის წონის ტოპ-კონტენდერი, ცნობილი ექსცენტრიული, რისკიანი სტილითა და გასაგუდი ხერხებით. UFC-ის ფრენის წონაში ყველაზე მეტი „საღამოს ბრძოლის" ბონუსი აქვს — ექვსი.',
     fights:[
+      { opp:'Lone\'er Kavanagh', date:'11.07.2026', result:'win',  method:'სუბმიშენი, 3 რაუნდი',  role:'even',     odds:'თანაბარი შანსები — საღამოს ბრძოლა' },
       { opp:'Manel Kape',    date:'13.12.2025', result:'loss', method:'ნოკაუტი, 1 რაუნდი',       role:'even',     odds:'თანაბარი შანსები' },
       { opp:'Joshua Van',    date:'28.06.2025', result:'loss', method:'გადაწყვეტილება, 3 რაუნდი', role:'even',     odds:'თანაბარი შანსები' },
       { opp:'Tatsuro Taira', date:'12.10.2024', result:'win',  method:'გადაწყვეტილება (სპლიტი)', role:'underdog', odds:'აუტსაიდერი' },
@@ -2022,16 +2140,13 @@ const FIGHTERS = [
       { opp:'Matt Hughes', date:'18.11.2006', result:'win', method:'TKO, 2 რაუნდი', role:'underdog', odds:'ანდერდოგი ჩემპიონთან' }
     ],
     details:{
-      born:'19 მაისი, 1981',
-      birthplace:'Saint-Isidore, Quebec, კანადა',
-      team:'Tristar Gym / Jackson Wink MMA / Renzo Gracie Academy — მთავარი მწვრთნელი Firas Zahabi; ასევე მუშაობდა Greg Jackson-თან, John Danaher-თან და Freddie Roach-თან',
-      started:'ბავშვობაში კიოკუშინ კარატე დაიწყო თავდაცვისთვის, შემდეგ კი ჭიდაობა, ბოქსი და ბრაზილიური ჯიუ-ჯიცუ დაამატა. MMA-ში მისი მთავარი ძალა იყო სხვადასხვა სტილების ძალიან სუფთა შერევა.',
-      style:'სისტემური MMA: ძლიერი ჯები, დროული თეიქდაუნები, ზედა კონტროლი და ძალიან ზუსტი თამაშის გეგმა. GSP ხშირად არა ძალით, არამედ წესრიგით და ტემპით ამტვრევდა მეტოქეს.',
-      career:'UFC-ის ველტერვეიტის ერთ-ერთი ყველაზე დომინანტი ჩემპიონი გახდა და ტიტული მრავალჯერ დაიცვა. 2017 წელს ხანგრძლივი პაუზის შემდეგ დაბრუნდა, Michael Bisping დაამარცხა და შუა წონის ქამარიც მოიგო.',
-      personal:'კარიერის განმავლობაში ხშირად საუბრობდა დისციპლინაზე, მენტალურ წნეხზე და ბულინგის საწინააღმდეგო თემებზე. მისი იმიჯი UFC-ში ყოველთვის პროფესიონალიზმსა და სპორტულ ეთიკას უკავშირდებოდა.',
-      nickFrom:'„Rush” ხაზს უსვამდა მის სწრაფ, ფეთქებად შესვლებს და იმ ენერგიას, რომლითაც შეტევაში გადადიოდა.',
-      legacy:'ორწონიანი UFC ჩემპიონი და ბევრისთვის MMA-ის ისტორიაში ერთ-ერთი მთავარი GOAT კანდიდატი.'
-    }
+      born:'19 მაისი 1981',
+      birthplace:'სენ-ისიდორი, კვებეკი, კანადა',
+      team:'Tristar Gym, მონრეალი (მწვრთნელი — ფირას ზაჰაბი)',
+      style:'კიოკუშინ კარატე · ჭიდაობა · კრივი · ჯიუ-ჯიცუ',
+      nickFrom:'„Rush" — სწრაფი, ფეთქებადი შესვლებისა და შეტევის ენერგიის გამო.',
+      text:'დაიბადა 1981 წლის 19 მაისს კვებეკის სოფელ სენ-ისიდორში. ბავშვობაში კიოკუშინ კარატე დაიწყო თავდაცვისთვის, შემდეგ კი ჭიდაობა, კრივი და ბრაზილიური ჯიუ-ჯიცუ დაამატა. MMA-ში მისი მთავარი ძალა სწორედ სხვადასხვა სტილის ძალიან სუფთა შერევა იყო.\n\nვარჯიშობდა Tristar Gym-ში ფირას ზაჰაბისთან; ასევე მუშაობდა გრეგ ჯექსონთან, ჯონ დანაჰერთან და ფრედი როუჩთან. მისი სისტემა იყო ძლიერი ჯები, დროული თეიქდაუნები, ზედა კონტროლი და ზუსტი თამაშის გეგმა — მეტოქეს ხშირად არა ძალით, არამედ წესრიგითა და ტემპით ამტვრევდა.\n\nგახდა UFC-ის ველტერვეიტის ერთ-ერთი ყველაზე დომინანტი ჩემპიონი და ტიტული მრავალჯერ დაიცვა. 2017 წელს ხანგრძლივი პაუზის შემდეგ დაბრუნდა, Michael Bisping დაამარცხა და შუა წონის ქამარიც მოიგო.\n\nკარიერის განმავლობაში ხშირად საუბრობდა დისციპლინაზე, მენტალურ წნეხსა და ბულინგის საწინააღმდეგო თემებზე. ორწონიანი UFC ჩემპიონია და ბევრისთვის MMA-ის ისტორიის ერთ-ერთი მთავარი GOAT კანდიდატი.',
+    },
   },
   {
     id:'cormier', name:'Daniel Cormier', nick:'DC', aka:'DC Daniel Ryan Cormier', flag:'🇺🇸',
@@ -2047,16 +2162,13 @@ const FIGHTERS = [
       { opp:'Jon Jones', date:'29.07.2017', result:'nc', method:'უ-კონტესტი, შედეგი გაუქმდა', role:'underdog', odds:'ანდერდოგი' }
     ],
     details:{
-      born:'20 მარტი, 1979',
-      birthplace:'Lafayette, Louisiana, აშშ',
-      team:'American Kickboxing Academy — Javier Mendez; ვარჯიშობდა Cain Velasquez-თან, Luke Rockhold-თან, Jon Fitch-თან და Josh Koscheck-თან',
-      started:'ბრძოლაში მისი საფუძველი იყო ჭიდაობა: NCAA Division I დონე, საერთაშორისო ასპარეზი და აშშ-ის ოლიმპიური ნაკრები. MMA-ში გადასვლის შემდეგ ამ ბაზას ბოქსი და კლინჩის წნეხი დაუმატა.',
-      style:'დაბალი სიმაღლის მიუხედავად მძიმე წონაში ძალიან კარგად იყენებდა კლინჩს, თეიქდაუნებს, კედელთან კონტროლს და მოკლე დარტყმებს. მისი მთავარი იარაღი იყო რიტმის ჩაკეტვა და მეტოქის სივრცის წართმევა.',
-      career:'Strikeforce-ის გრან-პრის გამარჯვების შემდეგ UFC-ში ნახევრად მძიმე წონის ჩემპიონი გახდა, შემდეგ მძიმე წონაში ავიდა და Stipe Miocic-ს პირველ რაუნდში ნოკაუტით მოუგო. ამის შემდეგ ერთდროულად ორი ქამარი ეჭირა.',
-      personal:'Cormier ცნობილია როგორც მწვრთნელი, კომენტატორი და ანალიტიკოსი. მისი კარიერის დიდი ნაწილი American Kickboxing Academy-სთან და Javier Mendez-თან არის დაკავშირებული.',
-      nickFrom:'„DC” უბრალოდ მისი სახელისა და გვარის ინიციალებია, მაგრამ UFC-ში ეს მოკლე სახელი უკვე ლეგენდის ბრენდად იქცა.',
-      legacy:'UFC-ის ორწონიანი ჩემპიონი, ერთ-ერთი საუკეთესო მოჭიდავე MMA-ის ისტორიაში და მძიმე/ნახევრად მძიმე წონის ეპოქის ცენტრალური ფიგურა.'
-    }
+      born:'20 მარტი 1979',
+      birthplace:'ლაფაიეტი, ლუიზიანა, აშშ',
+      team:'American Kickboxing Academy (ხავიერ მენდესი)',
+      style:'თავისუფალი ჭიდაობა (ოლიმპიური დონე) · კრივი · კლინჩი',
+      nickFrom:'„DC" — სახელისა და გვარის ინიციალები, რომელიც UFC-ში ლეგენდის ბრენდად იქცა.',
+      text:'დაიბადა 1979 წლის 20 მარტს ლუიზიანაში. მისი საფუძველი ჭიდაობაა: NCAA Division I-ის დონე, საერთაშორისო ასპარეზი და აშშ-ის ოლიმპიური ნაკრები. MMA-ში გადასვლის შემდეგ ამ ბაზას კრივი და კლინჩის წნეხი დაუმატა.\n\nდაბალი სიმაღლის მიუხედავად მძიმე წონაში ძალიან კარგად იყენებდა კლინჩს, თეიქდაუნებს, კედელთან კონტროლსა და მოკლე დარტყმებს. მისი მთავარი იარაღი იყო რიტმის ჩაკეტვა და მეტოქისთვის სივრცის წართმევა.\n\nStrikeforce-ის გრან-პრის მოგების შემდეგ UFC-ში ნახევრად მძიმე წონის ჩემპიონი გახდა, შემდეგ მძიმე წონაში ავიდა და Stipe Miocic პირველ რაუნდში ნოკაუტით დაამარცხა — ამის შემდეგ ერთდროულად ორი ქამარი ეჭირა.\n\nკარიერის დიდი ნაწილი American Kickboxing Academy-სა და ხავიერ მენდესთან არის დაკავშირებული. დღეს ცნობილია როგორც მწვრთნელი, კომენტატორი და ანალიტიკოსი; ერთ-ერთი საუკეთესო მოჭიდავე MMA-ის ისტორიაში.',
+    },
   },
   {
     id:'shara', name:'Sharabutdin Magomedov', nick:'Shara Bullet', aka:'Shara Bullet Shara Magomedov Sharaputdin Magomedov', flag:'🇷🇺',
@@ -2072,16 +2184,13 @@ const FIGHTERS = [
       { opp:'Bruno Silva', date:'21.10.2023', result:'win', method:'გადაწყვეტილება, 3 რაუნდი', role:'favorite', odds:'ფავორიტი UFC დებიუტში' }
     ],
     details:{
-      born:'16 მაისი, 1994',
-      birthplace:'Makhachkala, Dagestan, რუსეთი',
-      team:'GOR MMA — დაღესტნური ბაზა; დარტყმითი ფონი მუაი-ტაიში, კიკბოქსინგსა და ლეთვეიში',
-      started:'პირველად ფეხბურთით იყო დაკავებული, შემდეგ კი დარტყმით სპორტებში გადავიდა. მისი გზის მთავარი ნაწილი მუაი-ტაიმ, კიკბოქსინგმა და ლეთვეიმ ჩამოაყალიბა.',
-      style:'მაღალი, დარტყმებზე ორიენტირებული middleweight: უყვარს კუთხეების შეცვლა, spinning შეტევები, მუხლები და მოულოდნელი კომბინაციები. გრეპლინგში ნაკლებად გამოცდილია, ამიტომ მისთვის დისტანციის შენარჩუნება განსაკუთრებით მნიშვნელოვანია.',
-      career:'UFC-ში 2023 წელს შევიდა და ზედიზედ რამდენიმე გამარჯვებით სწრაფად გახდა თვალსაჩინო სახელი. Armen Petrosyan-ის წინააღმდეგ ორმაგი spinning backfist-ით ნოკაუტმა მისი ჰაილაით-რეპუტაცია კიდევ უფრო გააძლიერა. Michael Page-თან 2025 წელს პირველი პროფესიონალური მარცხი მიიღო, შემდეგ Barriault-ს გადაწყვეტილებით მოუგო.',
-      personal:'დაღესტნური MMA სკოლისგან განსხვავებით, Shara უფრო სტრაიკერის პროფილით გამოირჩევა. სწორედ ეს განსხვავებულობა ხდის მას საინტერესო ფიგურად შუა წონაში.',
-      nickFrom:'„Shara” მისი სახელის შემოკლებული ფორმაა, „Bullet” კი სწრაფ, მკვეთრ დარტყმებს და ფეთქებად სტილს უსვამს ხაზს.',
-      legacy:'ჯერ ლეგენდის სტატუსი არ აქვს, მაგრამ UFC-ის ერთ-ერთი ყველაზე სანახაობრივი თანამედროვე სტრაიკერია და მისი კარიერა ჯერ კიდევ ვითარდება.'
-    }
+      born:'16 მაისი 1994',
+      birthplace:'მახაჩკალა, დაღესტანი, რუსეთი',
+      team:'GOR MMA, დაღესტანი',
+      style:'მუაი-თაი · კიკბოქსინგი · ლეთვეი',
+      nickFrom:'„Shara" სახელის შემოკლებული ფორმაა, „Bullet" კი სწრაფ, მკვეთრ დარტყმებსა და ფეთქებად სტილს უსვამს ხაზს.',
+      text:'დაიბადა 1994 წლის 16 მაისს მახაჩკალაში. პირველად ფეხბურთით იყო დაკავებული, შემდეგ კი დარტყმით სპორტებში გადავიდა — მისი გზა მუაი-თაიმ, კიკბოქსინგმა და ლეთვეიმ ჩამოაყალიბა.\n\nმაღალი, დარტყმებზე ორიენტირებული შუა წონის მებრძოლია: უყვარს კუთხეების შეცვლა, spinning შეტევები, მუხლები და მოულოდნელი კომბინაციები. გრეპლინგში ნაკლებად გამოცდილია, ამიტომ მისთვის დისტანციის შენარჩუნება განსაკუთრებით მნიშვნელოვანია.\n\nUFC-ში 2023 წელს შევიდა და ზედიზედ რამდენიმე გამარჯვებით სწრაფად გახდა თვალსაჩინო სახელი. Armen Petrosyan-თან ორმაგი spinning backfist-ით ნოკაუტმა მისი ჰაილაით-რეპუტაცია კიდევ უფრო გააძლიერა. 2025 წელს Michael Page-თან პირველი პროფესიონალური მარცხი მიიღო, შემდეგ კი Barriault-ს გადაწყვეტილებით მოუგო.\n\nდაღესტნური MMA სკოლისგან განსხვავებით, შარა უფრო სტრაიკერის პროფილით გამოირჩევა — სწორედ ეს ხდის მას საინტერესო ფიგურად შუა წონაში.',
+    },
   },
   {
     id:'miller', name:'Jim Miller', nick:'A-10', flag:'🇺🇸',
@@ -2095,31 +2204,33 @@ const FIGHTERS = [
       { opp:'Jesse Butler', date:'03.06.2023', result:'win', method:'ნოკაუტი, 1 რაუნდი', role:'favorite', odds:'ფავორიტი' }
     ],
     details:{
-      born:'30 აგვისტო, 1983',
-      birthplace:'Sparta Township, New Jersey, აშშ',
-      team:'Miller Brothers MMA; ადრე AMA Fight Club — BJJ შავი ქამარი Jamie Cruz-ის ხაზით',
+      born:'30 აგვისტო 1983',
+      birthplace:'სპარტა-თაუნშიპი, ნიუ-ჯერსი, აშშ',
+      team:'Miller Brothers MMA (ადრე — AMA Fight Club)',
       style:'ჯიუ-ჯიცუ · გილიოტინა · NCAA ჭიდაობა · გამძლეობა',
-      nickFrom:'„A-10” დაკავშირებულია A-10 Thunderbolt II-ის გამძლე, პირდაპირ საბრძოლო იმიჯთან.',
+      nickFrom:'„A-10" — A-10 Thunderbolt II-ის გამძლე, პირდაპირი საბრძოლო იმიჯის გამო.',
       text:'დაიბადა ნიუ-ჯერსიში და კოლეჯში Virginia Tech-ში ჭიდაობდა. MMA-ში ძლიერი გრეპლინგით და გამძლეობით გამოირჩა.\n\nUFC-ში 2008 წლიდან იბრძვის და ორგანიზაციის ისტორიის ერთ-ერთი ყველაზე ხანგრძლივი კარიერა აქვს. რეკორდულად ბევრი UFC ბრძოლა ჩაატარა და 2026 წელს Jared Gordon-ის დამარცხებით UFC-ში ყველაზე მეტი გამარჯვების რეკორდი 28-მდე გაზარდა.\n\nMiller-ის კარიერა კარგი მაგალითია იმისა, რომ მხოლოდ ჩემპიონობა არ ქმნის ლეგენდას — ხანგრძლივობა, მზადყოფნა და მუდმივი კონკურენცია ზოგჯერ ისეთივე შთამბეჭდავია.'
     }
   },
   {
     id:'lewis', name:'Derrick Lewis', nick:'The Black Beast', flag:'🇺🇸',
     wclass:'heavyweight', champion:false, country:'აშშ',
-    rec:{w:29,l:13,d:0}, ko:24, sub:1, dec:4, height:'191 სმ', reach:'201 სმ', age:41,
-    bio:'UFC-ის ისტორიის ყველაზე დიდი ნოკაუტიორი: ორგანიზაციაში 16 ნოკაუტით ყველა დროის ლიდერია. მძიმე წონაში ცნობილია ერთი დარტყმის ძალით და მოულოდნელი ფინიშებით.',
+    rec:{w:29,l:14,d:0}, ko:24, sub:1, dec:4, height:'191 სმ', reach:'201 სმ', age:41,
+    bio:'UFC-ის ისტორიის ყველაზე დიდი ნოკაუტიორი: ორგანიზაციაში 16 ნოკაუტით ყველა დროის ლიდერია. მძიმე წონაში ცნობილია ერთი დარტყმის ძალით და მოულოდნელი ფინიშებით. ბოლო პერიოდში ზედიზედ ორი მარცხი განიცადა.',
     fights:[
-      { opp:'Daniel Marcos', date:'12.04.2025', result:'loss', method:'გადაწყვეტილება, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Josh Hokit', date:'14.06.2026', result:'loss', method:'ტექნ. ნოკაუტი, 2 რაუნდი', role:'even', odds:'ივენთი თეთრ სახლთან' },
+      { opp:'Waldo Cortes-Acosta', date:'24.01.2026', result:'loss', method:'ტექნ. ნოკაუტი, 2 რაუნდი', role:'even', odds:'თანაბარი შანსები' },
+      { opp:'Tallison Teixeira', date:'12.07.2025', result:'win', method:'ტექნ. ნოკაუტი, 1 რაუნდი', role:'even', odds:'მოიგო 35 წამში' },
       { opp:'Rodrigo Nascimento', date:'11.05.2024', result:'win', method:'ნოკაუტი, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
       { opp:'Jailton Almeida', date:'04.11.2023', result:'loss', method:'გადაწყვეტილება, 5 რაუნდი', role:'underdog', odds:'აუტსაიდერი' },
       { opp:'Marcos Rogerio de Lima', date:'29.07.2023', result:'win', method:'TKO, 1 რაუნდი', role:'underdog', odds:'აუტსაიდერი' }
     ],
     details:{
-      born:'7 თებერვალი, 1985',
-      birthplace:'New Orleans, Louisiana, აშშ',
-      team:'4oz Fight Club, Houston; ადრე Silverback Fight Club',
-      style:'ბოქსი · მძიმე წონის ძალა · ერთი დარტყმის ნოკაუტი',
-      nickFrom:'„The Black Beast” მისი მძიმე, ფიზიკური და ნოკაუტებზე ორიენტირებული სტილის სიმბოლოა.',
+      born:'7 თებერვალი 1985',
+      birthplace:'ნიუ-ორლეანი, ლუიზიანა, აშშ',
+      team:'4oz Fight Club, ჰიუსტონი (ადრე — Silverback Fight Club)',
+      style:'კრივი · მძიმე წონის ძალა · ერთი დარტყმის ნოკაუტი',
+      nickFrom:'„The Black Beast" — მისი მძიმე, ფიზიკური და ნოკაუტებზე ორიენტირებული სტილის სიმბოლო.',
       text:'დაიბადა ნიუ-ორლეანში და მოგვიანებით ჰიუსტონში გადავიდა. ახალგაზრდობაში რთული გზა ჰქონდა, შემდეგ კი ბოქსით და MMA-ით დაიწყო სპორტული კარიერის აგება.\n\nLewis UFC-ში მძიმე წონის ერთ-ერთ ყველაზე ცნობად სახედ იქცა: მისი მთავარი იარაღი ყოველთვის იყო ძალა, timing და მოულოდნელი აფეთქება.\n\nUFC-ის ოფიციალურ რეკორდებში ის ყველა დროის ნოკაუტების ლიდერია — 16 UFC KO/TKO გამარჯვება.'
     }
   },
@@ -2135,12 +2246,12 @@ const FIGHTERS = [
       { opp:'Christian Rodriguez', date:'08.04.2023', result:'loss', method:'გადაწყვეტილება, 3 რაუნდი', role:'favorite', odds:'ფავორიტი იყო' }
     ],
     details:{
-      born:'8 ოქტომბერი, 2004',
-      birthplace:'Clovis, New Mexico, აშშ',
-      team:'10th Planet Jiu Jitsu; ვარჯიშობს Las Vegas-ში',
+      born:'8 ოქტომბერი 2004',
+      birthplace:'კლოვისი, ნიუ-მექსიკო, აშშ',
+      team:'10th Planet Jiu Jitsu, ლას-ვეგასი',
       style:'ჯიუ-ჯიცუ · ჭიდაობა · ზურგზე გადასვლა · კონტროლი',
-      nickFrom:'„El Nino Problema” ესპანურად ნიშნავს „პრობლემა-ბავშვს” — მეტსახელი მის ძალიან ახალგაზრდა ასაკსა და საფრთხეს უსვამს ხაზს.',
-      text:'დაიბადა ნიუ-მექსიკოში, მექსიკური წარმოშობის ოჯახში. ბავშვობიდან საბრძოლო სპორტში იყო ჩართული და მოზარდობისას უკვე საერთაშორისო სამოყვარულო MMA-ზე გამოდიოდა.\n\n2022 წელს Dana White’s Contender Series-ზე გამარჯვების შემდეგ UFC-თან კონტრაქტი მიიღო 17 წლის და 11 თვის ასაკში — ეს UFC-ის ისტორიაში ყველაზე ახალგაზრდა კონტრაქტია.\n\nმისი სტილი პირველ რიგში გრეპლინგს, კონტროლს და ზურგის აღებას ეყრდნობა. ჯერ ძალიან ახალგაზრდა კარიერა აქვს, მაგრამ უკვე რამდენიმე UFC რეკორდს უკავშირდება ასაკის გამო.'
+      nickFrom:'„El Nino Problema" — ესპანურად „პრობლემა-ბავშვი"; მეტსახელი მის ძალიან ახალგაზრდა ასაკსა და საფრთხეს უსვამს ხაზს.',
+      text:'დაიბადა ნიუ-მექსიკოში, მექსიკური წარმოშობის ოჯახში. ბავშვობიდან საბრძოლო სპორტში იყო ჩართული და მოზარდობისას უკვე საერთაშორისო სამოყვარულო MMA-ზე გამოდიოდა.\n\n2022 წელს Dana White-ის Contender Series-ზე გამარჯვების შემდეგ UFC-თან კონტრაქტი მიიღო 17 წლის და 11 თვის ასაკში — ეს UFC-ის ისტორიაში ყველაზე ახალგაზრდა კონტრაქტია.\n\nმისი სტილი პირველ რიგში გრეპლინგს, კონტროლს და ზურგის აღებას ეყრდნობა. ჯერ ძალიან ახალგაზრდა კარიერა აქვს, მაგრამ უკვე რამდენიმე UFC რეკორდს უკავშირდება ასაკის გამო.'
     }
   }
 ];
@@ -2162,6 +2273,28 @@ function initials(name){
 }
 function recStr(r){ return `${r.w}-${r.l}-${r.d}`; }
 function classOf(key){ return WEIGHT_CLASSES.find(c => c.key === key); }
+
+/* ---------- ФЛАГИ ----------
+   В данных бойца страна лежит эмодзи-флагом ('🇬🇪', у Топурии сразу два).
+   Windows такие эмодзи не рисует — показывает буквы кода, поэтому здесь
+   переводим эмодзи в код страны ('GE') и отдаём <svg> из спрайта в начале body.
+   Как это работает: эмодзи-флаг — это две буквы из особого диапазона Unicode
+   (🇬 = «G», 🇪 = «E»), их и вычисляем обратно в обычные латинские буквы. */
+const FLAG_CODES = new Set(['GE','US','RU','BR','GB','AU','NZ','MX','NG','FR',
+  'ES','IE','AM','KZ','EC','AE','ZA','CZ','CN','MM','AO','CA']);
+/* Соперник по имени → id бойца, если он тоже есть в нашей базе.
+   Нужно, чтобы в истории боёв имя соперника стало ссылкой на его карточку.
+   Ключ — имя в нижнем регистре, чтобы регистр в данных не мешал совпадению. */
+const FIGHTER_BY_NAME = new Map(FIGHTERS.map(f => [f.name.toLowerCase(), f.id]));
+
+function flagIcons(emoji){
+  const codes = [...String(emoji || '').matchAll(/[\u{1F1E6}-\u{1F1FF}]{2}/gu)]
+    .map(m => [...m[0]].map(ch => String.fromCodePoint(ch.codePointAt(0) - 0x1F1E6 + 65)).join(''));
+  return codes.map(c => FLAG_CODES.has(c)
+    ? `<svg class="flag-icon" viewBox="0 0 30 20" role="img" aria-label="${c}"><use href="#fl-${c}"></use></svg>`
+    : `<span class="flag-code">${c}</span>`   // страны нет в спрайте — покажем код
+  ).join('');
+}
 // Фото бойца: приоритет у ЛОКАЛЬНОГО файла images/<id>.jpg. Если его нет —
 // подхватывается авто-фото из Википедии (карта PHOTOS ниже). Если нет и его —
 // показываются инициалы. Авто-URL — «горячие ссылки» на Wikimedia Commons;
@@ -2298,7 +2431,7 @@ function renderGrid(){
       <div class="photo">
         ${initials(f.name)}
         <img class="ph-img" src="${photoSrc(f)}" alt="${f.name}" loading="lazy" data-fb="${PHOTOS[f.id]||''}" onload="this.style.opacity=1" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.remove();}">
-        <span class="flag">${f.flag}</span>
+        <span class="flag">${flagIcons(f.flag)}</span>
         ${f.champion ? '<span class="champ">ჩემპიონი</span>' : ''}
         <button class="fav-btn ${isFav(f.id)?'on':''}" data-fav="${f.id}" title="ფავორიტი" aria-label="ფავორიტი">${isFav(f.id)?'★':'☆'}</button>
       </div>
@@ -2353,18 +2486,24 @@ function openFighter(id){
 
   const statBox = (val,label) => `<div class="box"><b>${val}</b><span>${label}</span></div>`;
   const factRow = (l,v) => v ? `<div class="fact"><span>${l}</span><b>${v}</b></div>` : '';
-  const detailBody = (d) => (d.text || [d.started, d.career, d.personal, d.legacy].filter(Boolean).join('\n\n'));
+  // проза биографии: у всех бойцов один формат — поле text, абзацы разделены \n\n
+  const detailBody = (d) => d.text || '';
 
   // показываем бои от свежих к старым (на случай дописанных исторических очных боёв)
   const dv = d => { const p = String(d).split('.'); return p.length === 3 ? +(p[2] + p[1] + p[0]) : 0; };
   const fightsHtml = [...f.fights].sort((x, y) => dv(y.date) - dv(x.date)).map(ft => {
     const letter = ft.result==='win' ? 'W' : ft.result==='loss' ? 'L' : ft.result==='nc' ? 'NC' : 'D';
     const roleLabel = ft.role==='favorite' ? 'ფავორიტი' : ft.role==='underdog' ? 'აუტსაიდერი' : 'თანაბარი';
+    // если соперник есть в базе — делаем имя кнопкой-ссылкой на его карточку
+    const oppId = FIGHTER_BY_NAME.get(ft.opp.toLowerCase());
+    const oppHtml = oppId
+      ? `<button type="button" class="opp-link" data-goto="${oppId}">${ft.opp}</button>`
+      : ft.opp;
     return `
       <div class="fight">
         <div class="res ${ft.result}">${letter}</div>
         <div class="info">
-          <div class="opp">${ft.opp}</div>
+          <div class="opp">${oppHtml}</div>
           <div class="det">${ft.method} · ${ft.date}</div>
         </div>
         <span class="role ${ft.role}" title="${ft.odds}">${roleLabel}</span>
@@ -2376,7 +2515,7 @@ function openFighter(id){
       <button class="close" id="closeBtn" aria-label="დახურვა">×</button>
       <div class="avatar">${initials(f.name)}<img src="${photoSrc(f)}" alt="${f.name}" data-fb="${PHOTOS[f.id]||''}" onload="this.style.opacity=1" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.remove();}"></div>
       <div>
-        <h3>${f.name} ${f.flag}</h3>
+        <h3>${f.name} ${flagIcons(f.flag)}</h3>
         <div class="nick">${f.nick !== '—' ? '«'+f.nick+'»' : ''}</div>
         <div class="tags">
           ${f.champion ? '<span class="tag gold">ჩემპიონი</span>' : ''}
@@ -2423,7 +2562,11 @@ function openFighter(id){
   document.body.style.overflow = 'hidden'; // фон не скроллится, пока открыта модалка
   // адрес с #id — чтобы на бойца можно было дать прямую ссылку (replaceState не вызывает hashchange => нет циклов)
   if (decodeURIComponent(location.hash.slice(1)) !== id) history.replaceState(null, '', '#' + id);
+  $('#modal').scrollTop = 0;   // перешли на другого бойца — показываем его карточку с начала
   $('#closeBtn').addEventListener('click', closeModal);
+  // клик по имени соперника — открываем его карточку прямо в этом же окне
+  $('#sheet').querySelectorAll('[data-goto]').forEach(b =>
+    b.addEventListener('click', () => openFighter(b.dataset.goto)));
   const detailsBtn = document.getElementById('detailsBtn');
   if (detailsBtn) detailsBtn.addEventListener('click', () => {
     const d = document.getElementById('fighterDetails');
@@ -2515,7 +2658,7 @@ function renderCompare(){
   const head = f => `
     <div class="cmp-fighter">
       <div class="cmp-photo">${initials(f.name)}<img src="${photoSrc(f)}" alt="${f.name}" data-fb="${PHOTOS[f.id]||''}" onload="this.style.opacity=1" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.remove();}"></div>
-      <div class="cmp-fname">${f.name} ${f.flag}</div>
+      <div class="cmp-fname">${f.name} ${flagIcons(f.flag)}</div>
       <div class="cmp-fsub">${classOf(f.wclass).name}${f.champion ? ' · ჩემპიონი' : ''}</div>
     </div>`;
 
@@ -2583,12 +2726,32 @@ function renderFotd(){
     <div class="fotd-photo">${initials(f.name)}<img src="${photoSrc(f)}" alt="${f.name}" data-fb="${PHOTOS[f.id]||''}" onload="this.style.opacity=1" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.remove();}"></div>
     <div class="fotd-info">
       <span class="fotd-label">🔥 დღის მებრძოლი</span>
-      <div class="fotd-name">${f.name} ${f.flag}</div>
+      <div class="fotd-name">${f.name} ${flagIcons(f.flag)}</div>
       <div class="fotd-meta">${classOf(f.wclass).name} · ${recStr(f.rec)}${f.champion ? ' · ჩემპიონი' : ''}</div>
       <p class="fotd-bio">${f.bio}</p>
       <span class="fotd-cta">სრული პროფილი →</span>
     </div>`;
   $('#fotdCard').onclick = () => openFighter(f.id);
+}
+
+/* рейтинг P4P: нумерованный список, клик по строке открывает карточку бойца */
+function renderP4P(){
+  $('#p4pHint').textContent = `UFC-ის ოფიციალური რეიტინგი წონის მიუხედავად · ${P4P_DATE}`;
+  $('#p4pList').innerHTML = P4P.map((id, i) => {
+    const f = FIGHTERS.find(x => x.id === id);
+    if (!f) return '';                       // бойца нет в базе — просто пропускаем
+    return `
+      <li class="p4p-row" data-id="${f.id}">
+        <span class="p4p-num ${i < 3 ? 'top' : ''}">${i + 1}</span>
+        <div class="p4p-photo">${initials(f.name)}<img src="${photoSrc(f)}" alt="${f.name}" loading="lazy" data-fb="${PHOTOS[f.id]||''}" onload="this.style.opacity=1" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.remove();}"></div>
+        <div class="p4p-info">
+          <span class="p4p-name">${f.name} ${flagIcons(f.flag)}</span>
+          <span class="p4p-meta">${classOf(f.wclass).name} · ${recStr(f.rec)}</span>
+        </div>
+      </li>`;
+  }).join('');
+  document.querySelectorAll('.p4p-row').forEach(r =>
+    r.addEventListener('click', () => openFighter(r.dataset.id)));
 }
 
 /* витрина действующих чемпионов (по порядку весовых категорий) */
@@ -2600,7 +2763,7 @@ function renderChampions(){
     <button class="champ-card" data-id="${f.id}">
       <div class="champ-photo">${initials(f.name)}<img src="${photoSrc(f)}" alt="${f.name}" data-fb="${PHOTOS[f.id]||''}" onload="this.style.opacity=1" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.remove();}"></div>
       <span class="champ-div">${classOf(f.wclass).name}</span>
-      <span class="champ-name">${f.name} ${f.flag}</span>
+      <span class="champ-name">${f.name} ${flagIcons(f.flag)}</span>
       <span class="champ-rec">${recStr(f.rec)}</span>
     </button>`).join('');
   document.querySelectorAll('.champ-card').forEach(b =>
@@ -2613,28 +2776,12 @@ function recordTile(r){
       <span class="rec-icon">${r.icon}</span>
       <span class="rec-val">${r.val}</span>
       <span class="rec-label">${r.label}</span>
-      <span class="rec-who">${r.f.name} ${r.f.flag}</span>
+      <span class="rec-who">${r.f.name} ${flagIcons(r.f.flag)}</span>
     </button>`;
 }
 function bindRecordTiles(sel){
   document.querySelectorAll(sel + ' .rec-tile').forEach(b =>
     b.addEventListener('click', () => openFighter(b.dataset.id)));
-}
-function renderRecords(){
-  const max = sel => FIGHTERS.reduce((a, b) => sel(b) > sel(a) ? b : a);
-  const min = sel => FIGHTERS.reduce((a, b) => sel(b) < sel(a) ? b : a);
-  const koL  = max(f => f.ko);
-  const winL = max(f => f.rec.w);
-  const subL = max(f => f.sub);
-  const young = min(f => f.age);
-  const recs = [
-    { icon:'🥊', val:koL.ko,     label:'ბაზაში ყველაზე მეტი ნოკაუტი',   f:koL  },
-    { icon:'🏆', val:winL.rec.w, label:'ბაზაში ყველაზე მეტი გამარჯვება', f:winL },
-    { icon:'🤼', val:subL.sub,   label:'ბაზაში ყველაზე მეტი სუბმიშენი',  f:subL },
-    { icon:'🎂', val:young.age + ' წ.', label:'ბაზაში უმცროსი მებრძოლი', f:young },
-  ];
-  $('#records').innerHTML = recs.map(recordTile).join('');
-  bindRecordTiles('#records');
 }
 
 /* real UFC all-time records */
@@ -2774,7 +2921,7 @@ function newQuiz(){
   qimg.style.transformOrigin = zx + '% ' + zy + '%';
   qimg.style.transform = 'scale(' + zoom + ')';
   $('#quizOptions').innerHTML = options.map(f =>
-    `<button class="quiz-opt" data-id="${f.id}">${f.name} ${f.flag}</button>`).join('');
+    `<button class="quiz-opt" data-id="${f.id}">${f.name} ${flagIcons(f.flag)}</button>`).join('');
   const fb = $('#quizFeedback'); fb.textContent = ''; fb.className = 'quiz-feedback';
   $('#quizNext').hidden = true;
 
@@ -2882,11 +3029,24 @@ $('#aiClose').addEventListener('click', () => $('#aiPanel').classList.remove('op
 $('#aiSend').addEventListener('click', aiSend);
 $('#aiInput').addEventListener('keydown', e => { if (e.key === 'Enter') aiSend(); });
 
+/* ---- мобильное меню: бургер открывает и закрывает список ссылок ---- */
+const burgerBtn = $('#burger'), navLinks = $('#navLinks');
+function setMenu(open){
+  navLinks.classList.toggle('open', open);
+  burgerBtn.setAttribute('aria-expanded', String(open));
+  burgerBtn.textContent = open ? '✕' : '☰';
+}
+burgerBtn.addEventListener('click', () => setMenu(!navLinks.classList.contains('open')));
+// после перехода по ссылке меню закрываем — иначе оно закроет собой содержимое
+navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
+// вернулись на широкий экран — сбрасываем состояние, чтобы меню не «залипло»
+window.addEventListener('resize', () => { if (window.innerWidth > 640) setMenu(false); });
+
 /* первый запуск */
 renderAuthArea();
 renderStatbar();
 renderChampions();
-renderRecords();
+renderP4P();
 renderUfcRecords();
 renderFotd();
 renderCats();
