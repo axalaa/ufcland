@@ -596,28 +596,16 @@ section.compare{ padding:10px 0 70px; }
 }
 .auth-sheet h3{ font-size:24px; font-weight:900; margin-bottom:8px; }
 .auth-note{ color:var(--muted); font-size:12px; line-height:1.5; margin-bottom:18px; background:rgba(233,185,73,.07); border:1px solid var(--line); border-radius:8px; padding:9px 11px; }
-.auth-input{
-  width:100%; padding:13px 15px; margin-bottom:11px; background:var(--surface); border:1px solid var(--line);
-  border-radius:10px; color:var(--text); font-size:15px; font-family:inherit; outline:none; transition:border-color .2s;
+.auth-err{ color:var(--loss); font-size:13px; min-height:18px; margin-top:10px; }
+/* кнопка входа через Google — белая, как требуют правила бренда Google */
+.google-btn{
+  width:100%; padding:13px; display:flex; align-items:center; justify-content:center; gap:11px;
+  background:#fff; color:#1f1f1f; border:none; border-radius:10px;
+  font-family:inherit; font-size:15px; font-weight:700; cursor:pointer; transition:filter .2s;
 }
-.auth-input:focus{ border-color:var(--red); }
-/* поле пароля + кнопка-«глаз» для показа/скрытия */
-.pass-wrap{ position:relative; }
-.pass-wrap .auth-input{ padding-right:46px; }
-.pass-toggle{
-  position:absolute; top:0; right:0; height:48px; width:44px; display:flex; align-items:center; justify-content:center;
-  background:none; border:none; cursor:pointer; font-size:17px; opacity:.6; transition:opacity .2s; padding:0;
-}
-.pass-toggle:hover{ opacity:1; }
-.pass-toggle.on{ opacity:1; }
-.auth-err{ color:var(--loss); font-size:13px; min-height:18px; margin-bottom:6px; }
-.auth-submit{
-  width:100%; padding:14px; background:linear-gradient(135deg,var(--red),var(--gold)); color:#1a120c;
-  border:none; border-radius:10px; font-family:inherit; font-size:16px; font-weight:900; cursor:pointer; transition:filter .2s;
-}
-.auth-submit:hover{ filter:brightness(1.08); }
-.auth-switch{ text-align:center; color:var(--muted); font-size:13px; margin-top:14px; }
-.auth-switch a{ color:var(--gold-soft); cursor:pointer; font-weight:700; }
+.google-btn:hover{ filter:brightness(.94); }
+.google-btn:disabled{ opacity:.55; cursor:default; }
+.google-btn svg{ width:18px; height:18px; flex:none; }
 
 /* ---- звезда «избранное» на карточке ---- */
 .fav-btn{
@@ -733,17 +721,19 @@ section.fotd{ padding:28px 0 4px; }
 <div class="modal auth-modal" id="authModal">
   <div class="auth-sheet">
     <button class="close" id="authClose" aria-label="დახურვა">×</button>
-    <h3 id="authTitle">რეგისტრაცია</h3>
-    <p class="auth-note">ⓘ ლოკალური დემო — მონაცემები ინახება მხოლოდ ამ ბრაუზერში და არ არის დაცული. გამოიყენე მარტივი პაროლი (არა ნამდვილი). რეალური შესვლა Google-ით დაემატება საიტის გამოქვეყნების შემდეგ.</p>
-    <input class="auth-input" id="authName" type="text" placeholder="სახელი" autocomplete="off">
-    <input class="auth-input" id="authEmail" type="email" placeholder="ელფოსტა" autocomplete="off">
-    <div class="pass-wrap">
-      <input class="auth-input" id="authPass" type="password" placeholder="პაროლი" autocomplete="off">
-      <button type="button" class="pass-toggle" id="passToggle" aria-label="პაროლის ჩვენება" title="პაროლის ჩვენება">👁</button>
-    </div>
+    <h3>შესვლა</h3>
+    <p class="auth-note">ⓘ შესვლა ხდება Google-ის ანგარიშით — პაროლს ჩვენ არ ვინახავთ. შესვლის შემდეგ გაიხსნება ⭐ ფავორიტები და თამაში.</p>
+    <button class="google-btn" id="googleBtn" type="button">
+      <!-- логотип Google, четырёхцветная «G» -->
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      Google-ით შესვლა
+    </button>
     <div class="auth-err" id="authErr"></div>
-    <button class="auth-submit" id="authSubmit">რეგისტრაცია</button>
-    <p class="auth-switch"><span id="authSwitchText">უკვე გაქვს ანგარიში?</span> <a id="authSwitch">შესვლა</a></p>
   </div>
 </div>
 
@@ -2813,24 +2803,24 @@ const LS = {
   set(k, v){ try { localStorage.setItem(k, v); } catch (e) {} },
   del(k){ try { localStorage.removeItem(k); } catch (e) {} },
 };
+/* ---------- АККАУНТ: настоящий вход через Google (Firebase) ----------
+   Паролей мы не храним вообще — их проверяет Google.
+   Тонкость: Firebase отвечает асинхронно (нужно дождаться ответа сервера),
+   а весь остальной код спрашивает «кто вошёл?» синхронно, прямо во время
+   отрисовки. Поэтому последнего известного пользователя держим в currentUser,
+   а firebase-модуль в конце страницы обновляет его через window.onAuthChange. */
+let currentUser = null;
 const AUTH = {
-  hash(s){ let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return String(h); },
-  users(){ try { return JSON.parse(LS.get('ufc_users') || '[]'); } catch (e) { return []; } },
-  save(u){ LS.set('ufc_users', JSON.stringify(u)); },
-  current(){ const e = LS.get('ufc_session'); return e ? (this.users().find(u => u.email === e) || null) : null; },
-  register(name, email, pass){
-    if (!name || !email || !pass) return 'შეავსე ყველა ველი';
-    const users = this.users();
-    if (users.some(u => u.email === email)) return 'ასეთი ელფოსტა უკვე რეგისტრირებულია';
-    users.push({ name, email, pass: this.hash(pass) });
-    this.save(users); LS.set('ufc_session', email); return null;
-  },
-  login(email, pass){
-    const u = this.users().find(x => x.email === email);
-    if (!u || u.pass !== this.hash(pass)) return 'არასწორი ელფოსტა ან პაროლი';
-    LS.set('ufc_session', email); return null;
-  },
-  logout(){ LS.del('ufc_session'); },
+  current(){ return currentUser; },
+  ready(){ return !!window.FBAuth; },   // модуль с CDN мог не догрузиться
+};
+
+// это дёргает firebase-модуль: при загрузке страницы, после входа и после выхода
+window.onAuthChange = (user) => {
+  currentUser = user;
+  // вышел, а стоял на вкладке «избранное» — уводим оттуда, иначе покажем пустоту
+  if (!user && state.wclass === 'favorites') state.wclass = 'all';
+  renderAuthArea(); renderCats(); renderGrid(); renderGame();
 };
 
 /* избранное — привязано к текущему аккаунту */
@@ -2851,38 +2841,34 @@ function renderAuthArea(){
   $('#authArea').innerHTML = u
     ? `<span class="auth-hi">გამარჯობა, <b>${u.name}</b></span><button class="auth-btn" id="logoutBtn">გასვლა</button>`
     : `<button class="auth-btn primary" id="loginBtn">შესვლა</button>`;
-  const lo = $('#logoutBtn'); if (lo) lo.onclick = () => { AUTH.logout(); if (state.wclass === 'favorites') state.wclass = 'all'; renderAuthArea(); renderCats(); renderGrid(); renderGame(); };
+  // перерисовку после выхода сделает onAuthChange — здесь только просим Firebase выйти
+  const lo = $('#logoutBtn'); if (lo) lo.onclick = () => { if (window.FBAuth) window.FBAuth.signOut(); };
   const li = $('#loginBtn'); if (li) li.onclick = openAuth;
 }
 
-/* модалка входа / регистрации */
-let authMode = 'register';
-function openAuth(){ renderAuthMode(); $('#authErr').textContent = ''; $('#authModal').classList.add('open'); document.body.style.overflow = 'hidden'; }
+/* модалка входа */
+function openAuth(){ $('#authErr').textContent = ''; $('#authModal').classList.add('open'); document.body.style.overflow = 'hidden'; }
 function closeAuth(){ $('#authModal').classList.remove('open'); document.body.style.overflow = ''; }
-function renderAuthMode(){
-  const reg = authMode === 'register';
-  $('#authTitle').textContent = reg ? 'რეგისტრაცია' : 'შესვლა';
-  $('#authSubmit').textContent = reg ? 'რეგისტრაცია' : 'შესვლა';
-  $('#authName').style.display = reg ? 'block' : 'none';
-  $('#authSwitchText').textContent = reg ? 'უკვე გაქვს ანგარიში?' : 'ანგარიში არ გაქვს?';
-  $('#authSwitch').textContent = reg ? 'შესვლა' : 'რეგისტრაცია';
-}
 $('#authClose').addEventListener('click', closeAuth);
 $('#authModal').addEventListener('click', (e) => { if (e.target.id === 'authModal') closeAuth(); });
-// показать / скрыть пароль
-$('#passToggle').addEventListener('click', () => {
-  const inp = $('#authPass'), btn = $('#passToggle'), show = inp.type === 'password';
-  inp.type = show ? 'text' : 'password';
-  btn.classList.toggle('on', show);
-  const label = show ? 'პაროლის დამალვა' : 'პაროლის ჩვენება';
-  btn.title = label; btn.setAttribute('aria-label', label);
-});
-$('#authSwitch').addEventListener('click', () => { authMode = (authMode === 'register') ? 'login' : 'register'; $('#authErr').textContent = ''; renderAuthMode(); });
-$('#authSubmit').addEventListener('click', () => {
-  const name = $('#authName').value.trim(), email = $('#authEmail').value.trim(), pass = $('#authPass').value;
-  const err = (authMode === 'register') ? AUTH.register(name, email, pass) : AUTH.login(email, pass);
-  if (err){ $('#authErr').textContent = err; return; }
-  closeAuth(); renderAuthArea(); renderCats(); renderGrid(); renderGame();
+
+$('#googleBtn').addEventListener('click', async () => {
+  const btn = $('#googleBtn');
+  if (!AUTH.ready()){
+    $('#authErr').textContent = 'შესვლა ვერ ჩაიტვირთა — შეამოწმე ინტერნეტი და გადატვირთე გვერდი';
+    return;
+  }
+  btn.disabled = true; $('#authErr').textContent = '';
+  try {
+    await window.FBAuth.signIn();   // откроется окно Google
+    closeAuth();                    // перерисовку сделает onAuthChange
+  } catch (e) {
+    // человек сам закрыл окно Google — это не ошибка, молчим
+    const quiet = ['auth/popup-closed-by-user', 'auth/cancelled-popup-request'];
+    if (!quiet.includes(e.code)) $('#authErr').textContent = 'შესვლა ვერ მოხერხდა, სცადე ხელახლა';
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 /* ---- мини-игра «угадай бойца»: показываем фото, угадай имя из 4 вариантов ---- */
@@ -2969,16 +2955,15 @@ function renderGame(){
   }
   renderBoard();
 }
-/* топ-5 рекордов среди аккаунтов (онлайн станет общим рейтингом) */
+/* Личный рекорд игрока. Раньше тут был топ-5 по локальным аккаунтам, но с
+   настоящим входом чужие результаты браузеру взять неоткуда — они лежат у
+   других людей. Общий рейтинг вернём, когда результаты переедут в облако. */
 function renderBoard(){
-  const rows = AUTH.users()
-    .map(u => ({ name: u.name, best: +(LS.get('ufc_quiz_best_' + u.email) || 0) }))
-    .filter(r => r.best > 0)
-    .sort((a, b) => b.best - a.best)
-    .slice(0, 5);
-  if (!rows.length){ $('#quizBoard').innerHTML = ''; return; }
-  $('#quizBoard').innerHTML = '<h3 class="board-title">🏅 ტოპ-5 რეკორდი</h3><ol class="board-list">' +
-    rows.map(r => `<li><span>${r.name}</span><b>${r.best}</b></li>`).join('') + '</ol>';
+  const u = AUTH.current();
+  const best = u ? quizBestVal() : 0;
+  $('#quizBoard').innerHTML = best > 0
+    ? `<h3 class="board-title">🏅 შენი რეკორდი</h3><ol class="board-list"><li><span>${u.name}</span><b>${best}</b></li></ol>`
+    : '';
 }
 $('#quizLoginBtn').addEventListener('click', openAuth);
 
@@ -3054,6 +3039,51 @@ renderGrid();
 initCompare();
 renderGame();   // игра только для вошедших + таблица рекордов
 routeFromHash();   // если адрес содержит #id — сразу открыть карточку бойца
+</script>
+
+<!-- ======================= FIREBASE: вход через Google =======================
+     Это отдельный скрипт-модуль (type="module") — такие умеют загружать
+     библиотеки с CDN по import и выполняются ПОСЛЕ основного скрипта выше.
+     Связь между ними через window: модуль кладёт туда FBAuth (войти/выйти),
+     а основной скрипт даёт функцию onAuthChange, которую модуль зовёт, когда
+     Google подтвердил вход или выход.
+
+     apiKey ниже НЕ секретный — он лишь указывает, к какому проекту Firebase
+     обращаться, и специально предназначен для вставки в страницу. Защита
+     держится на списке разрешённых доменов в консоли Firebase (Authentication →
+     Settings → Authorized domains): с чужого адреса вход просто не сработает. -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js';
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+    from 'https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js';
+
+  const app = initializeApp({
+    apiKey:            'AIzaSyBQ-KOr0Od9Yo47Y1SEvbz3lTTQA1BjDaA',
+    authDomain:        'ufcland-b9dea.firebaseapp.com',
+    projectId:         'ufcland-b9dea',
+    storageBucket:     'ufcland-b9dea.firebasestorage.app',
+    messagingSenderId: '376654894726',
+    appId:             '1:376654894726:web:f8d05c00459abd8c47a307',
+  });
+
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  window.FBAuth = {
+    signIn:  () => signInWithPopup(auth, provider),
+    signOut: () => signOut(auth),
+  };
+
+  // Firebase зовёт это сам: при загрузке страницы, после входа и после выхода.
+  // Отдаём наверх только то, что нужно сайту — имя, почту и id.
+  onAuthStateChanged(auth, (user) => {
+    if (!window.onAuthChange) return;
+    window.onAuthChange(user ? {
+      uid:   user.uid,
+      name:  user.displayName || user.email,
+      email: user.email,
+    } : null);
+  });
 </script>
 </body>
 </html>
