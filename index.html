@@ -458,6 +458,19 @@ section.fighters{ padding:48px 0 70px; }
 }
 .nc-head h3{ font-size:22px; font-weight:900; margin:10px 0 6px; }
 .nc-meta{ color:var(--gold-soft); font-size:13px; }
+/* очная ставка главного боя */
+.nc-faceoff{ display:flex; align-items:flex-start; justify-content:center; gap:12px; margin:16px 0 12px; }
+.nc-fighter{ flex:1; max-width:150px; }
+.nc-photo{
+  width:84px; height:84px; margin:0 auto 8px; border-radius:50%; overflow:hidden; position:relative;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.32); border:2px solid var(--gold); color:var(--gold-soft);
+  font-weight:900; font-size:22px;
+}
+.nc-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .4s ease; }
+.nc-fname{ font-size:14px; font-weight:800; line-height:1.25; }
+.nc-frec{ color:var(--gold-soft); font-size:12px; margin-top:3px; }
+.nc-vs-big{ flex:none; padding-top:30px; font-size:17px; font-weight:900; color:var(--gold); }
 .nc-countdown{
   margin-top:12px; display:inline-block; background:rgba(0,0,0,.3);
   border-radius:999px; padding:5px 15px; font-size:13px; font-weight:700;
@@ -2395,6 +2408,7 @@ const PHOTOS = {
   miller:'https://commons.wikimedia.org/wiki/Special:FilePath/Jim.miller.2.jpg?width=500',
   lewis:'https://commons.wikimedia.org/wiki/Special:FilePath/Derrick_Lewis_after_UFC_239.jpg?width=500',
   rosas:'https://commons.wikimedia.org/wiki/Special:FilePath/Ra%C3%BAl_Rosas_Jr._2024.png?width=500',
+  garry:'https://commons.wikimedia.org/wiki/Special:FilePath/IanGarry.jpg?width=500',
   mcgregor:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Conor_McGregor_2025.jpeg/500px-Conor_McGregor_2025.jpeg',
   edwards:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Leon_Edwards_2021.png/500px-Leon_Edwards_2021.png',
   adesanya:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Israel_Adesanya_at_UFC_230.jpg/500px-Israel_Adesanya_at_UFC_230.jpg',
@@ -2861,6 +2875,24 @@ function renderNextCard(){
       <div class="nc-pair">${side(b.a)}<span class="nc-vs">vs</span>${side(b.b)}</div>
     </div>`;
 
+  /* Очная ставка главного боя в шапке: фото, имя, рекорд.
+     Фото и рекорд показываем только для тех, кто есть в базе; для остальных
+     остаются инициалы — так блок не разъезжается на любом карде. */
+  const face = (name) => {
+    const id = FIGHTER_BY_NAME.get(String(name).toLowerCase());
+    const f = id ? FIGHTERS.find(x => x.id === id) : null;
+    const img = f
+      ? `<img src="${photoSrc(f)}" alt="${esc(f.name)}" data-fb="${PHOTOS[f.id] || ''}" onload="this.style.opacity=1" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.remove();}">`
+      : '';
+    return `
+      <div class="nc-fighter">
+        <div class="nc-photo">${initials(name)}${img}</div>
+        <div class="nc-fname">${esc(name)}</div>
+        ${f ? `<div class="nc-frec">${recStr(f.rec)}</div>` : ''}
+      </div>`;
+  };
+  const headliner = c.main[0];
+
   const d = daysUntil(c.date);
   const countdown = d === null ? ''
     : d  >  1 ? `დარჩა ${d} დღე`
@@ -2872,7 +2904,9 @@ function renderNextCard(){
     <button class="close" id="cardClose" aria-label="დახურვა">×</button>
     <div class="nc-head">
       <span class="nc-event">${esc(c.event)}</span>
-      <h3>${esc(c.headline)}</h3>
+      ${headliner
+        ? `<div class="nc-faceoff">${face(headliner.a)}<span class="nc-vs-big">VS</span>${face(headliner.b)}</div>`
+        : `<h3>${esc(c.headline)}</h3>`}
       <div class="nc-meta">${esc(c.date)} · ${esc(c.venue)}</div>
       ${countdown ? `<div class="nc-countdown">${countdown}</div>` : ''}
     </div>
