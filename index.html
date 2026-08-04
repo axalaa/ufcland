@@ -2815,24 +2815,73 @@ const AUTH = {
   ready(){ return !!window.FBAuth; },   // модуль с CDN мог не догрузиться
 };
 
+/* Данные аккаунта (избранное + рекорд) живут в облаке, но код рисует страницу
+   синхронно и ждать сеть не может. Поэтому при входе один раз выкачиваем их
+   сюда, рисуем отсюда, а изменения дописываем в облако вдогонку. */
+let userData = { favs: [], best: 0 };
+
+const firstName = (n) => String(n || '').split(' ')[0] || 'მოთამაშე';
+// имена в общем топ-5 приходят от других людей — экранируем, чтобы нельзя было подсунуть разметку
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+
+async function loadUserData(user){
+  userData = { favs: [], best: 0 };
+  if (!window.FBData) return;
+  try {
+    const [favs, best] = await Promise.all([
+      window.FBData.loadFavs(user.uid),
+      window.FBData.loadScore(user.uid),
+    ]);
+    userData = { favs, best };
+    await migrateLocalData(user);
+  } catch (e) {
+    console.warn('არ ჩაიტვირთა ანგარიშის მონაცემები', e);
+  }
+}
+
+/* Разовый переезд: до облака избранное и рекорд лежали в этом браузере.
+   Если в облаке пусто, а локально что-то было — поднимаем наверх, чтобы
+   человек не потерял то, что успел насобирать. Дальше условия не сработают. */
+async function migrateLocalData(user){
+  let oldFavs = []; try { oldFavs = JSON.parse(LS.get('ufc_favs_' + user.email) || '[]'); } catch (e) {}
+  const oldBest = +(LS.get('ufc_quiz_best_' + user.email) || 0);
+  if (!userData.favs.length && oldFavs.length){
+    userData.favs = oldFavs;
+    await window.FBData.saveFavs(user.uid, oldFavs);
+  }
+  if (!userData.best && oldBest){
+    userData.best = oldBest;
+    await window.FBData.saveScore(user.uid, firstName(user.name), oldBest);
+  }
+}
+
 // это дёргает firebase-модуль: при загрузке страницы, после входа и после выхода
-window.onAuthChange = (user) => {
+window.onAuthChange = async (user) => {
   currentUser = user;
-  // вышел, а стоял на вкладке «избранное» — уводим оттуда, иначе покажем пустоту
-  if (!user && state.wclass === 'favorites') state.wclass = 'all';
-  renderAuthArea(); renderCats(); renderGrid(); renderGame();
+  if (!user){
+    userData = { favs: [], best: 0 };
+    // вышел, а стоял на вкладке «избранное» — уводим оттуда, иначе покажем пустоту
+    if (state.wclass === 'favorites') state.wclass = 'all';
+    renderAuthArea(); renderCats(); renderGrid(); renderGame();
+    return;
+  }
+  renderAuthArea();            // имя в шапке показываем сразу, не дожидаясь сети
+  await loadUserData(user);
+  renderCats(); renderGrid(); renderGame();
 };
 
-/* избранное — привязано к текущему аккаунту */
-function getFavs(){ const u = AUTH.current(); if (!u) return []; try { return JSON.parse(LS.get('ufc_favs_' + u.email) || '[]'); } catch (e) { return []; } }
+/* избранное — привязано к аккаунту и живёт в облаке, поэтому одинаковое на всех устройствах */
+function getFavs(){ return AUTH.current() ? userData.favs : []; }
 function isFav(id){ return getFavs().includes(id); }
 function toggleFav(id){
   const u = AUTH.current();
-  if (!u){ openAuth(); return; }                 // не вошёл → предложить регистрацию
-  let f = getFavs();
-  f = f.includes(id) ? f.filter(x => x !== id) : [...f, id];
-  LS.set('ufc_favs_' + u.email, JSON.stringify(f));
-  renderGrid(); renderCats();
+  if (!u){ openAuth(); return; }                 // не вошёл → предложить войти
+  userData.favs = userData.favs.includes(id)
+    ? userData.favs.filter(x => x !== id)
+    : [...userData.favs, id];
+  renderGrid(); renderCats();                    // звезду перекрашиваем сразу, не дожидаясь сети
+  if (window.FBData) window.FBData.saveFavs(u.uid, userData.favs)
+    .catch(e => console.warn('ფავორიტები ვერ შეინახა', e));
 }
 
 /* шапка: кнопка входа или приветствие + выход */
@@ -2881,8 +2930,7 @@ function quizShuffle(arr){
   return a;
 }
 // рекорд хранится отдельно для каждого аккаунта (по email); без входа — общий ключ
-function quizBestKey(){ const u = AUTH.current(); return u ? 'ufc_quiz_best_' + u.email : 'ufc_quiz_best'; }
-function quizBestVal(){ return +(LS.get(quizBestKey()) || 0); }
+function quizBestVal(){ return userData.best; }
 
 function newQuiz(){
   quizLocked = false;
@@ -2926,7 +2974,13 @@ function quizAnswer(btn){
   const fb = $('#quizFeedback');
   if (right){
     quizScore++; quizStreak++;
-    if (quizStreak > quizBestVal()){ LS.set(quizBestKey(), quizStreak); renderBoard(); }
+    if (quizStreak > quizBestVal()){          // новый личный рекорд — отправляем в облако
+      userData.best = quizStreak;
+      const u = AUTH.current();
+      if (u && window.FBData) window.FBData.saveScore(u.uid, firstName(u.name), quizStreak)
+        .then(renderBoard)
+        .catch(e => console.warn('რეკორდი ვერ შეინახა', e));
+    }
     fb.textContent = '✓ სწორია!'; fb.classList.add('ok');
   } else {
     quizStreak = 0;
@@ -2955,15 +3009,22 @@ function renderGame(){
   }
   renderBoard();
 }
-/* Личный рекорд игрока. Раньше тут был топ-5 по локальным аккаунтам, но с
-   настоящим входом чужие результаты браузеру взять неоткуда — они лежат у
-   других людей. Общий рейтинг вернём, когда результаты переедут в облако. */
-function renderBoard(){
-  const u = AUTH.current();
-  const best = u ? quizBestVal() : 0;
-  $('#quizBoard').innerHTML = best > 0
-    ? `<h3 class="board-title">🏅 შენი რეკორდი</h3><ol class="board-list"><li><span>${u.name}</span><b>${best}</b></li></ol>`
-    : '';
+/* Общий топ-5: рекорды всех игроков лежат в облаке и читаются всеми.
+   Функция асинхронная — таблица дорисуется, когда придёт ответ от базы. */
+async function renderBoard(){
+  const el = $('#quizBoard');
+  if (!el) return;
+  if (!window.FBData){ el.innerHTML = ''; return; }
+  try {
+    const rows = await window.FBData.topScores();
+    el.innerHTML = rows.length
+      ? '<h3 class="board-title">🏅 ტოპ-5 რეკორდი</h3><ol class="board-list">' +
+        rows.map(r => `<li><span>${esc(r.name)}</span><b>${+r.best || 0}</b></li>`).join('') + '</ol>'
+      : '';
+  } catch (e) {
+    el.innerHTML = '';                      // база недоступна — просто не показываем таблицу
+    console.warn('ტოპ-5 ვერ ჩაიტვირთა', e);
+  }
 }
 $('#quizLoginBtn').addEventListener('click', openAuth);
 
@@ -3056,6 +3117,8 @@ routeFromHash();   // если адрес содержит #id — сразу о
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js';
   import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
     from 'https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js';
+  import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs }
+    from 'https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js';
 
   const app = initializeApp({
     apiKey:            'AIzaSyBQ-KOr0Od9Yo47Y1SEvbz3lTTQA1BjDaA',
@@ -3068,10 +3131,34 @@ routeFromHash();   // если адрес содержит #id — сразу о
 
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
+  const db = getFirestore(app);
 
   window.FBAuth = {
     signIn:  () => signInWithPopup(auth, provider),
     signOut: () => signOut(auth),
+  };
+
+  /* Работа с базой. Два раздела, у них разные правила доступа (см. Rules в консоли):
+     users/{uid}  — избранное, читает и пишет только сам владелец
+     scores/{uid} — рекорд квиза, читают все (нужно для общего топ-5), пишет только владелец */
+  window.FBData = {
+    loadFavs: async (uid) => {
+      const s = await getDoc(doc(db, 'users', uid));
+      return (s.exists() && s.data().favs) || [];
+    },
+    saveFavs: (uid, favs) => setDoc(doc(db, 'users', uid), { favs }, { merge: true }),
+
+    loadScore: async (uid) => {
+      const s = await getDoc(doc(db, 'scores', uid));
+      return (s.exists() && s.data().best) || 0;
+    },
+    saveScore: (uid, name, best) => setDoc(doc(db, 'scores', uid), { name, best }, { merge: true }),
+
+    // пятёрка лучших — по убыванию рекорда
+    topScores: async () => {
+      const snap = await getDocs(query(collection(db, 'scores'), orderBy('best', 'desc'), limit(5)));
+      return snap.docs.map(d => d.data());
+    },
   };
 
   // Firebase зовёт это сам: при загрузке страницы, после входа и после выхода.
