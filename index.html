@@ -65,8 +65,11 @@ header{
 }
 .logo small{ color:var(--muted); font-weight:500; font-size:13px; }
 .nav-links{ display:flex; gap:26px; }
-.nav-links a{ color:var(--muted); font-weight:500; transition:color .2s; }
+.nav-links a{ color:var(--muted); font-weight:500; transition:color .2s; cursor:pointer; }
 .nav-links a:hover{ color:var(--text); }
+/* «Next Card» — не раздел страницы, а окно; выделяем золотом, чтобы бросалось в глаза */
+.nav-links a.nav-accent{ color:var(--gold-soft); font-weight:700; }
+.nav-links a.nav-accent:hover{ color:var(--gold); }
 /* кнопка-бургер: на широком экране не нужна — там ссылки и так видны */
 .burger{
   display:none; width:40px; height:40px; flex:none; cursor:pointer;
@@ -443,6 +446,31 @@ section.fighters{ padding:48px 0 70px; }
 .role.underdog{ background:rgba(232,59,59,.16); color:#f1948a; }
 .role.even{ background:rgba(176,154,134,.14); color:var(--muted); }
 
+/* ---------- ОКНО «БЛИЖАЙШИЙ ТУРНИР» ---------- */
+.card-modal .card-sheet{
+  background:var(--bg-2); border:1px solid var(--line); border-radius:18px; overflow:hidden;
+  max-width:560px; width:100%; position:relative; box-shadow:var(--shadow); animation:rise .25s ease;
+}
+.nc-head{ padding:26px 26px 20px; background:linear-gradient(135deg,var(--red-deep),#2a1812); text-align:center; }
+.nc-event{
+  display:inline-block; background:var(--gold); color:#1a120c;
+  font-size:11px; font-weight:900; letter-spacing:.6px; padding:3px 11px; border-radius:999px;
+}
+.nc-head h3{ font-size:22px; font-weight:900; margin:10px 0 6px; }
+.nc-meta{ color:var(--gold-soft); font-size:13px; }
+.nc-countdown{
+  margin-top:12px; display:inline-block; background:rgba(0,0,0,.3);
+  border-radius:999px; padding:5px 15px; font-size:13px; font-weight:700;
+}
+.nc-body{ padding:18px 26px 26px; max-height:58vh; overflow-y:auto; }
+.nc-bout{ padding:11px 0; border-top:1px solid var(--line); }
+.nc-bout:first-of-type{ border-top:none; }
+.nc-div{ color:var(--muted); font-size:12px; margin-bottom:4px; }
+.nc-div .nc-belt{ color:var(--gold); font-weight:700; }
+.nc-pair{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.nc-pair .nc-name{ font-weight:700; font-size:15px; }
+.nc-vs{ color:var(--muted); font-size:12px; font-weight:700; }
+
 /* ---------- P4P РЕЙТИНГ ----------
    Список мест 1–15: номер + мини-фото + имя. Плитки в сетку, чтобы на широком
    экране шли в 2–3 колонки, а на телефоне — в одну. */
@@ -710,6 +738,8 @@ section.fotd{ padding:28px 0 4px; }
       <a href="#hero">მთავარი</a>
       <a href="#fighters">მებრძოლები</a>
       <a href="#stats">სტატისტიკა</a>
+      <!-- открывает окно с ближайшим турниром (данные в NEXT_CARD) -->
+      <a id="nextCardLink" class="nav-accent">Next Card</a>
     </nav>
     <div class="auth-area" id="authArea"><!-- вход/профиль подставит JS --></div>
     <!-- кнопка меню: видна только на телефоне (см. @media в стилях) -->
@@ -735,6 +765,11 @@ section.fotd{ padding:28px 0 4px; }
     </button>
     <div class="auth-err" id="authErr"></div>
   </div>
+</div>
+
+<!-- ======================= ОКНО «БЛИЖАЙШИЙ ТУРНИР» ======================= -->
+<div class="modal card-modal" id="cardModal">
+  <div class="card-sheet" id="cardSheet"><!-- состав турнира подставит JS из NEXT_CARD --></div>
 </div>
 
 <!-- ======================= ГЕРОЙ ======================= -->
@@ -938,6 +973,36 @@ const WEIGHT_CLASSES = [
 const P4P_DATE = '28.07.2026';
 const P4P = ['makhachev','volkanovski','yan','gaethje','topuria','aspinall','strickland',
              'merab','pereira','gane','van','chimaev','pantoja','tsarukyan','oliveira'];
+
+/* Ближайший турнир — окно «Next Card» в шапке.
+   Как обновлять: турнир прошёл — заменяешь весь этот блок на следующий.
+   `div` пишем строкой английскими терминами (как в WEIGHT_CLASSES), потому что
+   в кардах бывают категории, которых у нас в меню нет (например женские).
+   Имя бойца САМО станет ссылкой, если он есть в FIGHTERS — добавлять никого
+   заранее не нужно, кого нет, тот останется обычным текстом.
+   ВНИМАНИЕ: в "Women's Strawweight" есть апостроф — строка в ДВОЙНЫХ кавычках. */
+const NEXT_CARD = {
+  event:    'UFC 330',
+  headline: 'Makhachev vs. Machado Garry',
+  date:     '15.08.2026',
+  venue:    'ფილადელფია, აშშ',
+  main: [
+    { a:'Islam Makhachev',    b:'Ian Machado Garry', div:'Welterweight',        title:true },
+    { a:'Mackenzie Dern',     b:'Gillian Robertson', div:"Women's Strawweight", title:true },
+    { a:'Mansur Abdul-Malik', b:'Dustin Stoltzfus',  div:'Middleweight' },
+    { a:'Jeremiah Wells',     b:'Myktybek Orolbai',  div:'Welterweight' },
+    { a:'Jalin Turner',       b:'Kauê Fernandes',    div:'Lightweight' },
+    { a:'Neil Magny',         b:'Ramiz Brahimaj',    div:'Welterweight' },
+    { a:'Donte Johnson',      b:'Eric McConico',     div:'Middleweight' },
+    { a:'Vicente Luque',      b:'Tresean Gore',      div:'Middleweight' },
+    { a:'Edson Barboza',      b:'Esteban Ribovics',  div:'Lightweight' },
+  ],
+  prelims: [
+    { a:'Charles Johnson',    b:'Jose Ochoa',        div:'Flyweight' },
+    { a:'Rafael Tobias',      b:'Lucas Fernando',    div:'Light Heavyweight' },
+    { a:'Chidi Njokuani',     b:'Joel Álvarez',      div:'Welterweight' },
+  ],
+};
 
 const FIGHTERS = [
   {
@@ -2243,7 +2308,28 @@ const FIGHTERS = [
       nickFrom:'„El Nino Problema" — ესპანურად „პრობლემა-ბავშვი"; მეტსახელი მის ძალიან ახალგაზრდა ასაკსა და საფრთხეს უსვამს ხაზს.',
       text:'დაიბადა ნიუ-მექსიკოში, მექსიკური წარმოშობის ოჯახში. ბავშვობიდან საბრძოლო სპორტში იყო ჩართული და მოზარდობისას უკვე საერთაშორისო სამოყვარულო MMA-ზე გამოდიოდა.\n\n2022 წელს Dana White-ის Contender Series-ზე გამარჯვების შემდეგ UFC-თან კონტრაქტი მიიღო 17 წლის და 11 თვის ასაკში — ეს UFC-ის ისტორიაში ყველაზე ახალგაზრდა კონტრაქტია.\n\nმისი სტილი პირველ რიგში გრეპლინგს, კონტროლს და ზურგის აღებას ეყრდნობა. ჯერ ძალიან ახალგაზრდა კარიერა აქვს, მაგრამ უკვე რამდენიმე UFC რეკორდს უკავშირდება ასაკის გამო.'
     }
-  }
+  },
+  {
+    id:'garry', name:'Ian Machado Garry', nick:'The Future', flag:'🇮🇪',
+    details:{
+      born:'17 ნოემბერი 1997',
+      birthplace:'პორტმარნოკი, დუბლინის საგრაფო, ირლანდია',
+      team:'Chute Boxe Diego Lima (ბრაზილია) / Bangtao (ტაილანდი)',
+      style:'ჯუდო (შავი ქამარი) · კრივი · მუაი-თაი',
+      nickFrom:'„The Future" — „მომავალი"; მეტსახელი ადრეულ ასაკში დაწყებულ სწრაფ აღმასვლას უსვამს ხაზს.',
+      text:'დაიბადა 1997 წლის 17 ნოემბერს ირლანდიის ქალაქ პორტმარნოკში, დუბლინის საგრაფოში. კრივი ათი წლისა დაიწყო, თვრამეტი წლისთვის კი ჯუდოში შავი ქამარი მოიპოვა.\n\nMMA-ზე კონორ მაკგრეგორის გავლენით გადავიდა — მისივე თქმით, სწორედ თანამემამულის წარმატებამ დაანახა, რომ ეს გზა შესაძლებელია.\n\n2023 წლიდან ბრაზილიაში, Chute Boxe-ში ემზადება, ასევე ვარჯიშობს ტაილანდის Bangtao-ში. მისი მთავარი უპირატესობა ველტერვეიტისთვის უჩვეულო აღნაგობაა: 191 სმ სიმაღლე და გრძელი მკლავი — დისტანციაზე მუშაობს და მოწინააღმდეგეს ახლოს არ უშვებს.\n\n2025 წლის ნოემბერში ბელალ მუჰამედი დაამარცხა და ტიტულისთვის ბრძოლა მოიპოვა. 2026 წლის 15 აგვისტოს UFC 330-ზე მახაჩევს ხვდება.',
+    },
+    wclass:'welterweight', champion:false, country:'ირლანდია',
+    rec:{w:17,l:1,d:0}, ko:7, sub:1, dec:9, height:'191 სმ', reach:'188 სმ', age:28,
+    bio:'ირლანდიელი ველტერვეიტი, ცნობილი გრძელი მკლავითა და დისტანციური ბრძოლით. კარიერაში მხოლოდ ერთი მარცხი აქვს — შავქათ რახმონოვთან. 2026 წლის 15 აგვისტოს მახაჩევს ხვდება ტიტულისთვის.',
+    fights:[
+      { opp:'Belal Muhammad',    date:'22.11.2025', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი', role:'even',     odds:'თანაბარი შანსები — მოიპოვა სატიტულო შანსი' },
+      { opp:'Carlos Prates',     date:'26.04.2025', result:'win',  method:'გადაწყვეტილება, 5 რაუნდი', role:'even',     odds:'თანაბარი შანსები' },
+      { opp:'Shavkat Rakhmonov', date:'07.12.2024', result:'loss', method:'გადაწყვეტილება, 3 რაუნდი', role:'underdog', odds:'აუტსაიდერი — კარიერის ერთადერთი მარცხი' },
+      { opp:'Michael Page',      date:'29.06.2024', result:'win',  method:'გადაწყვეტილება, 3 რაუნდი', role:'favorite', odds:'ფავორიტი' },
+      { opp:'Geoff Neal',        date:'17.02.2024', result:'win',  method:'გადაწყვეტილება (სპლიტი)',  role:'favorite', odds:'ფავორიტი' },
+    ],
+  },
 ];
 
 /* =========================================================================
@@ -2604,7 +2690,12 @@ window.addEventListener('hashchange', routeFromHash);
 
 /* закрытие по клику на фон и по Escape */
 $('#modal').addEventListener('click', (e) => { if(e.target.id === 'modal') closeModal(); });
-document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  closeModal();                                        // карточка бойца
+  if (typeof closeNextCard === 'function') closeNextCard();   // расписание турнира
+  if (typeof closeAuth === 'function') closeAuth();           // окно входа
+});
 
 /* поиск — фильтруем «на лету» при вводе */
 $('#search').addEventListener('input', (e) => {
@@ -2743,6 +2834,67 @@ function renderP4P(){
   document.querySelectorAll('.p4p-row').forEach(r =>
     r.addEventListener('click', () => openFighter(r.dataset.id)));
 }
+
+/* ---- окно «ближайший турнир» (данные в NEXT_CARD вверху скрипта) ---- */
+
+// сколько дней осталось до даты вида '15.08.2026'; отрицательное — турнир уже прошёл
+function daysUntil(dmy){
+  const p = String(dmy).split('.');
+  if (p.length !== 3) return null;
+  const target = new Date(+p[2], +p[1] - 1, +p[0]);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return Math.round((target - today) / 86400000);
+}
+
+function renderNextCard(){
+  const c = NEXT_CARD;
+  // имя бойца: ссылка на карточку, если он есть в базе; иначе просто текст
+  const side = (name) => {
+    const id = FIGHTER_BY_NAME.get(name.toLowerCase());
+    return id
+      ? `<button type="button" class="opp-link nc-name" data-goto="${id}">${esc(name)}</button>`
+      : `<span class="nc-name">${esc(name)}</span>`;
+  };
+  const bout = (b) => `
+    <div class="nc-bout">
+      <div class="nc-div">${esc(b.div)}${b.title ? ' · <span class="nc-belt">სატიტულო</span>' : ''}</div>
+      <div class="nc-pair">${side(b.a)}<span class="nc-vs">vs</span>${side(b.b)}</div>
+    </div>`;
+
+  const d = daysUntil(c.date);
+  const countdown = d === null ? ''
+    : d  >  1 ? `დარჩა ${d} დღე`
+    : d === 1 ? 'ხვალ!'
+    : d === 0 ? 'დღეს!'
+    :           'დასრულდა';
+
+  $('#cardSheet').innerHTML = `
+    <button class="close" id="cardClose" aria-label="დახურვა">×</button>
+    <div class="nc-head">
+      <span class="nc-event">${esc(c.event)}</span>
+      <h3>${esc(c.headline)}</h3>
+      <div class="nc-meta">${esc(c.date)} · ${esc(c.venue)}</div>
+      ${countdown ? `<div class="nc-countdown">${countdown}</div>` : ''}
+    </div>
+    <div class="nc-body">
+      <p class="block-title">მთავარი კარდი</p>
+      ${c.main.map(bout).join('')}
+      ${c.prelims && c.prelims.length
+        ? `<p class="block-title">პრელიმინარები</p>${c.prelims.map(bout).join('')}`
+        : ''}
+    </div>`;
+
+  $('#cardClose').addEventListener('click', closeNextCard);
+  // клик по имени — закрываем расписание и открываем карточку бойца
+  $('#cardSheet').querySelectorAll('[data-goto]').forEach(b =>
+    b.addEventListener('click', () => { closeNextCard(); openFighter(b.dataset.goto); }));
+}
+
+function openNextCard(){ renderNextCard(); $('#cardModal').classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeNextCard(){ $('#cardModal').classList.remove('open'); document.body.style.overflow = ''; }
+
+$('#nextCardLink').addEventListener('click', openNextCard);
+$('#cardModal').addEventListener('click', (e) => { if (e.target.id === 'cardModal') closeNextCard(); });
 
 /* витрина действующих чемпионов (по порядку весовых категорий) */
 function renderChampions(){
