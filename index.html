@@ -451,26 +451,34 @@ section.fighters{ padding:48px 0 70px; }
   background:var(--bg-2); border:1px solid var(--line); border-radius:18px; overflow:hidden;
   max-width:560px; width:100%; position:relative; box-shadow:var(--shadow); animation:rise .25s ease;
 }
-.nc-head{ padding:26px 26px 20px; background:linear-gradient(135deg,var(--red-deep),#2a1812); text-align:center; }
+.nc-head{
+  position:relative; overflow:hidden; text-align:center;
+  padding:26px 26px 20px; background:linear-gradient(135deg,var(--red-deep),#2a1812);
+}
+/* фото бойцов подложкой — тот же приём, что в герое: маска растворяет их к центру,
+   чтобы заголовок оставался читаемым */
+.nc-bg{ position:absolute; top:0; bottom:0; width:54%; background-size:cover; background-position:center 12%; opacity:.5; }
+.nc-bg.left{
+  left:0;
+  -webkit-mask-image:linear-gradient(to right, #000, #000 15%, transparent 90%);
+          mask-image:linear-gradient(to right, #000, #000 15%, transparent 90%);
+}
+.nc-bg.right{
+  right:0;
+  -webkit-mask-image:linear-gradient(to left, #000, #000 15%, transparent 90%);
+          mask-image:linear-gradient(to left, #000, #000 15%, transparent 90%);
+}
+.nc-shade{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(20,15,12,.2) 0%, rgba(20,15,12,.6) 100%); }
+.nc-head-inner{ position:relative; z-index:1; }
+.nc-recs{ color:#fff; font-size:13px; font-weight:700; margin-bottom:6px; text-shadow:0 1px 3px rgba(0,0,0,.6); }
+.nc-recs span{ color:var(--gold); margin:0 4px; }
+@media(max-width:640px){ .nc-bg{ width:66%; opacity:.35; } }
 .nc-event{
   display:inline-block; background:var(--gold); color:#1a120c;
   font-size:11px; font-weight:900; letter-spacing:.6px; padding:3px 11px; border-radius:999px;
 }
 .nc-head h3{ font-size:22px; font-weight:900; margin:10px 0 6px; }
 .nc-meta{ color:var(--gold-soft); font-size:13px; }
-/* очная ставка главного боя */
-.nc-faceoff{ display:flex; align-items:flex-start; justify-content:center; gap:12px; margin:16px 0 12px; }
-.nc-fighter{ flex:1; max-width:150px; }
-.nc-photo{
-  width:84px; height:84px; margin:0 auto 8px; border-radius:50%; overflow:hidden; position:relative;
-  display:flex; align-items:center; justify-content:center;
-  background:rgba(0,0,0,.32); border:2px solid var(--gold); color:var(--gold-soft);
-  font-weight:900; font-size:22px;
-}
-.nc-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .4s ease; }
-.nc-fname{ font-size:14px; font-weight:800; line-height:1.25; }
-.nc-frec{ color:var(--gold-soft); font-size:12px; margin-top:3px; }
-.nc-vs-big{ flex:none; padding-top:30px; font-size:17px; font-weight:900; color:var(--gold); }
 .nc-countdown{
   margin-top:12px; display:inline-block; background:rgba(0,0,0,.3);
   border-radius:999px; padding:5px 15px; font-size:13px; font-weight:700;
@@ -2875,23 +2883,28 @@ function renderNextCard(){
       <div class="nc-pair">${side(b.a)}<span class="nc-vs">vs</span>${side(b.b)}</div>
     </div>`;
 
-  /* Очная ставка главного боя в шапке: фото, имя, рекорд.
-     Фото и рекорд показываем только для тех, кто есть в базе; для остальных
-     остаются инициалы — так блок не разъезжается на любом карде. */
-  const face = (name) => {
+  const byName = (name) => {
     const id = FIGHTER_BY_NAME.get(String(name).toLowerCase());
-    const f = id ? FIGHTERS.find(x => x.id === id) : null;
-    const img = f
-      ? `<img src="${photoSrc(f)}" alt="${esc(f.name)}" data-fb="${PHOTOS[f.id] || ''}" onload="this.style.opacity=1" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.remove();}">`
-      : '';
-    return `
-      <div class="nc-fighter">
-        <div class="nc-photo">${initials(name)}${img}</div>
-        <div class="nc-fname">${esc(name)}</div>
-        ${f ? `<div class="nc-frec">${recStr(f.rec)}</div>` : ''}
-      </div>`;
+    return id ? FIGHTERS.find(x => x.id === id) : null;
   };
+
+  /* Фон шапки — как в герое на главной: фото бойцов по краям, растворяются к центру.
+     Два адреса в background-image работают как подстраховка: первым идёт локальный
+     файл, вторым авто-фото из Википедии. Если локального нет, CSS просто покажет
+     то, что лежит слоем ниже — для background-image нет onerror, поэтому так. */
+  const bgFor = (name) => {
+    const f = byName(name);
+    if (!f) return null;
+    const urls = [photoSrc(f), PHOTOS[f.id]].filter(Boolean).map(u => `url('${u}')`);
+    return urls.join(', ');
+  };
+
   const headliner = c.main[0];
+  const bgA = headliner ? bgFor(headliner.a) : null;
+  const bgB = headliner ? bgFor(headliner.b) : null;
+  // рекорды под заголовком — только если оба бойца есть в базе
+  const fA = headliner ? byName(headliner.a) : null;
+  const fB = headliner ? byName(headliner.b) : null;
 
   const d = daysUntil(c.date);
   const countdown = d === null ? ''
@@ -2903,12 +2916,16 @@ function renderNextCard(){
   $('#cardSheet').innerHTML = `
     <button class="close" id="cardClose" aria-label="დახურვა">×</button>
     <div class="nc-head">
-      <span class="nc-event">${esc(c.event)}</span>
-      ${headliner
-        ? `<div class="nc-faceoff">${face(headliner.a)}<span class="nc-vs-big">VS</span>${face(headliner.b)}</div>`
-        : `<h3>${esc(c.headline)}</h3>`}
-      <div class="nc-meta">${esc(c.date)} · ${esc(c.venue)}</div>
-      ${countdown ? `<div class="nc-countdown">${countdown}</div>` : ''}
+      ${bgA ? `<div class="nc-bg left"  style="background-image:${bgA}"></div>` : ''}
+      ${bgB ? `<div class="nc-bg right" style="background-image:${bgB}"></div>` : ''}
+      <div class="nc-shade"></div>
+      <div class="nc-head-inner">
+        <span class="nc-event">${esc(c.event)}</span>
+        <h3>${esc(c.headline)}</h3>
+        ${fA && fB ? `<div class="nc-recs">${recStr(fA.rec)} <span>·</span> ${recStr(fB.rec)}</div>` : ''}
+        <div class="nc-meta">${esc(c.date)} · ${esc(c.venue)}</div>
+        ${countdown ? `<div class="nc-countdown">${countdown}</div>` : ''}
+      </div>
     </div>
     <div class="nc-body">
       <p class="block-title">მთავარი კარდი</p>
